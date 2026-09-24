@@ -10,6 +10,13 @@ import Testing
             == ["falta «informe de ventas»", "falta «rápid»", "sobra «eh»", "sobra «o sea»"])
   }
 
+  @Test func requiredWordsCanHaveAlternatives() {
+    let sample = EvalSample(entrada: "", requeridas: ["diez|10"], prohibidas: [])
+    #expect(EvalBench.problems(in: "Nos vemos a las 10.", for: sample).isEmpty)
+    #expect(EvalBench.problems(in: "Nos vemos a las diez.", for: sample).isEmpty)
+    #expect(EvalBench.problems(in: "Nos vemos a las once.", for: sample) == ["falta «diez|10»"])
+  }
+
   @Test func forbiddenWordsMustBeWholeWords() {
     let sample = EvalSample(entrada: "", requeridas: [], prohibidas: ["eh"])
     #expect(EvalBench.problems(in: "Lo he hecho.", for: sample).isEmpty)

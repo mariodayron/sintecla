@@ -62,6 +62,16 @@ import Testing
                               output: "Mañana llamo sin falta al proveedor por el pedido."))  // 2 de 6
   }
 
+  @Test func rejectsInventedGreetingsAndFarewells() {
+    // «Mi estilo» dice que saluda con «Hola, buenas»: Gemini lo añadía aunque no se dijera.
+    #expect(!guardian.accepts(input: "el pedido no ha llegado todavía puedes llamar al proveedor para ver qué pasa",
+                              output: "Hola, buenas. El pedido no ha llegado todavía, ¿puedes llamar al proveedor para ver qué pasa?"))
+    #expect(!guardian.accepts(input: "te mando el presupuesto de la reforma con el total corregido",
+                              output: "Te mando el presupuesto de la reforma con el total corregido. Un saludo."))
+    #expect(guardian.accepts(input: "hola marta te mando el presupuesto de la reforma un saludo",
+                             output: "Hola, Marta:\n\nTe mando el presupuesto de la reforma.\n\nUn saludo."))
+  }
+
   @Test func listMarkersAreNotNewWords() {
     #expect(guardian.accepts(input: "primero abre el terminal luego ejecuta swift build y después lanza los tests",
                              output: "1. Abre el terminal.\n2. Ejecuta swift build.\n3. Lanza los tests."))

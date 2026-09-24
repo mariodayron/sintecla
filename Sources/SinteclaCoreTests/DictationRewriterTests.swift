@@ -47,7 +47,25 @@ final class PromptSpy: TextModel, @unchecked Sendable {
     #expect(spy.calls.count == 1)
     #expect(spy.calls.first?.prompt == "<t>hola marta te mando el presupuesto de la reforma</t>")
     #expect(spy.calls.first?.instructions.contains("Escribe en: Safari · mail.google.com.") == true)
-    #expect(spy.calls.first?.instructions.contains("Estilo de la persona: tuteo.") == true)
+    #expect(spy.calls.first?.instructions.contains("no se haya dicho): tuteo.") == true)
+  }
+
+  @Test func dropsGreetingsAndFarewellsItMadeUp() async {
+    // «Mi estilo» dice que saluda con «Hola, buenas»: Gemini a veces lo añade aunque no se diga.
+    let greeting = FakeModel { _ in "Hola, buenas. La idea es que la app sea más rápida, sobre todo al abrir, que tarda mucho." }
+    #expect(await rewriter(greeting).rewrite("bueno la idea es que la app sea más rápida que vaya más rápido sobre todo al abrir que al abrir tarda mucho",
+                                             tone: .neutral)
+            == DictationRewriter.Result(text: "La idea es que la app sea más rápida, sobre todo al abrir, que tarda mucho.", engine: .gemini))
+    let farewell = FakeModel { _ in "Te mando el presupuesto de la reforma con el total corregido.\n\nUn saludo." }
+    #expect(await rewriter(farewell).rewrite("te mando el presupuesto de la reforma con el total corregido", tone: .formal).text
+            == "Te mando el presupuesto de la reforma con el total corregido.")
+  }
+
+  @Test func keepsGreetingsAndFarewellsThatWereSaid() {
+    let output = "Hola, buenas.\n\nTe mando el presupuesto.\n\nUn saludo."
+    #expect(DictationRewriter.removingMadeUpGreetings(output, dictated: "hola buenas te mando el presupuesto un saludo") == output)
+    #expect(DictationRewriter.removingMadeUpGreetings("Hola, Marta: te mando el presupuesto.", dictated: "marta te mando el presupuesto")
+            == "Hola, Marta: te mando el presupuesto.")
   }
 
   @Test func answerRejectedByTheGuardFallsBackWithoutError() async {

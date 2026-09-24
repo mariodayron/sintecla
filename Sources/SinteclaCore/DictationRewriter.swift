@@ -41,7 +41,8 @@ public struct DictationRewriter: Sendable {
     let instructions = PromptLibrary.rewriteInstructions(tone: tone, context: PromptLibrary.writingPlace(appName: appName, site: site),
                                                          style: style, terms: terms)
     do {
-      let output = PromptLibrary.unwrap(try await cloud.complete(instructions: instructions, prompt: PromptLibrary.wrap(pre)))
+      let reply = PromptLibrary.unwrap(try await cloud.complete(instructions: instructions, prompt: PromptLibrary.wrap(pre)))
+      let output = Self.removingMadeUpGreetings(reply, dictated: pre)
       guard outputGuard.accepts(input: pre, output: output, allowedNewWords: Set(terms)) else {
         return await fallback(raw, tone: tone)
       }
@@ -49,6 +50,26 @@ public struct DictationRewriter: Sendable {
     } catch {
       return await fallback(raw, tone: tone, error: error as? CloudError ?? .network(error.localizedDescription))
     }
+  }
+
+  /// Quita el saludo o la despedida que Gemini se inventa (lo saca de «Mi estilo» aunque se le pida que no): la primera
+  /// o la última frase, si solo tiene palabras de saludo (`OutputGuard.greetingWords`) que no están en lo dictado.
+  static func removingMadeUpGreetings(_ output: String, dictated: String) -> String {
+    let said = Set(TextMetrics.contentWords(dictated))
+    func madeUp(_ sentence: Substring) -> Bool {
+      let words = TextMetrics.contentWords(String(sentence))
+      return !words.isEmpty && words.allSatisfy { OutputGuard.greetingWords.contains($0) && !said.contains($0) }
+    }
+    let ends: Set<Character> = [".", "!", ":", "\n"]
+    var text = output.trimmingCharacters(in: .whitespacesAndNewlines)
+    if let end = text.firstIndex(where: ends.contains), madeUp(text[..<end]) {
+      text = String(text[text.index(after: end)...]).trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    let body = text.last.map { ".!".contains($0) } == true ? text.dropLast() : Substring(text)
+    if let start = body.lastIndex(where: ends.contains), madeUp(body[body.index(after: start)...]) {
+      text = String(body[...start]).trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    return ToneFormatter.capitalizingFirstLetter(text)
   }
 
   private func fallback(_ raw: String, tone: Tone, error: CloudError? = nil) async -> Result {

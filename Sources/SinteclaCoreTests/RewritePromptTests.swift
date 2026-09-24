@@ -15,8 +15,17 @@ import Testing
                                                  terms: ["Brisenta", "Supabase"])
     #expect(text.contains("Escribe en: Safari · mail.google.com."))
     #expect(text.contains("Tono: " + ToneFormatter.cloudInstruction(for: .formal) + "."))
-    #expect(text.contains("Estilo de la persona: tuteo, sin emojis."))
+    #expect(text.contains("Estilo de la persona (solo para la forma de escribir; no añadas por él saludos, despedidas ni nada que "
+                          + "no se haya dicho): tuteo, sin emojis."))
     #expect(text.contains("Escribe así estos términos: Brisenta, Supabase."))
+  }
+
+  @Test func geminiKeepsWhatWasSaidAndDropsFillers() {
+    let text = PromptLibrary.rewriteInstructions(tone: .neutral, context: nil, style: "", terms: [])
+    #expect(text.contains("Conserva los saludos y despedidas que diga; no añadas ninguno que no diga, ni firmas."))
+    #expect(text.contains("Quita muletillas (eh, este, o sea, bueno, pues, vale, oye, digo)"))
+    #expect(text.contains("<t>pásame el informe, o sea el informe de ventas, cuando puedas</t> -> Pásame el informe de ventas cuando puedas."))
+    #expect(text.contains("<t>hola luis te paso el informe, el informe de ventas, un saludo</t> -> Hola, Luis, te paso el informe de ventas. Un saludo."))
   }
 
   @Test func geminiLeavesOutEmptyLinesAndCapsTerms() {

@@ -3,7 +3,7 @@ import Foundation
 /// Un caso del banco de calidad (`Resources/eval/*.json`).
 public struct EvalSample: Decodable, Equatable, Sendable {
   public var entrada: String
-  /// Deben aparecer (sin distinguir mayúsculas; vale dentro de otra palabra: «rápid»).
+  /// Deben aparecer (sin distinguir mayúsculas; vale dentro de otra palabra: «rápid»). «diez|10»: cualquiera de las dos.
   public var requeridas: [String]
   /// No deben aparecer como palabra o frase completa.
   public var prohibidas: [String]
@@ -30,7 +30,8 @@ public enum EvalBench {
   /// Lo que falla del resultado: «falta «…»», «sobra «…»» o «falta «?»». Vacío si está bien.
   public static func problems(in text: String, for sample: EvalSample) -> [String] {
     var problems: [String] = []
-    for word in sample.requeridas where text.range(of: word, options: .caseInsensitive) == nil {
+    for word in sample.requeridas
+    where !word.split(separator: "|").contains(where: { text.range(of: $0, options: .caseInsensitive) != nil }) {
       problems.append("falta «\(word)»")
     }
     for word in sample.prohibidas where containsWord(text, word) {

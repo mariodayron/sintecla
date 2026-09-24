@@ -11,6 +11,13 @@ public struct OutputGuard: Sendable {
   /// Margen absoluto para textos muy cortos ("vale" → "Vale.").
   public var extraCharsAllowance = 5
 
+  /// Palabras de saludo o despedida: si salen y no se dijeron, la IA se las ha inventado
+  /// (Gemini las sacaba de «Mi estilo»). Plegadas con `TextMetrics.fold`.
+  static let greetingWords: Set<String> = [
+    "hola", "buenas", "buenos", "estimado", "estimada", "estimados", "estimadas", "querido", "querida",
+    "saludo", "saludos", "abrazo", "abrazos", "besos", "atentamente", "cordialmente", "gracias",
+  ]
+
   public init() {}
 
   public func accepts(input: String, output: String, allowedNewWords: Set<String> = []) -> Bool {
@@ -26,8 +33,9 @@ public struct OutputGuard: Sendable {
       .union(allowedNewWords.flatMap { TextMetrics.contentWords($0) })
     let outWords = TextMetrics.contentWords(Self.withoutListMarkers(out))
     if !outWords.isEmpty {
-      let novel = outWords.filter { !known.contains($0) }.count
-      guard Double(novel) / Double(outWords.count) <= maxNovelRatio else { return false }
+      let novel = outWords.filter { !known.contains($0) }
+      guard Double(novel.count) / Double(outWords.count) <= maxNovelRatio,
+            !novel.contains(where: Self.greetingWords.contains) else { return false }
     }
 
     if TextMetrics.isQuestion(input) && !TextMetrics.isQuestion(out) { return false }
