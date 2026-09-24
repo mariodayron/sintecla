@@ -1,0 +1,14 @@
+[
+  {"entrada": "vale pues mañana tenemos la reunión con el cliente, o sea la reunión es a las diez, y hay que llevar el presupuesto, el presupuesto actualizado, y bueno también las fotos de la obra, y que no se nos olvide el presupuesto eh", "requeridas": ["diez", "presupuesto actualizado", "fotos de la obra"], "prohibidas": ["o sea", "eh", "vale pues", "bueno"]},
+  {"entrada": "lo que te quería decir es que el pedido no ha llegado, o sea que no ha llegado todavía el pedido, y que si puedes llamar al proveedor para ver qué pasa con el pedido", "requeridas": ["pedido", "proveedor"], "prohibidas": ["o sea"]},
+  {"entrada": "necesito que me mandes el informe, el informe de ventas digo, antes del viernes, porque el viernes tengo la reunión y lo necesito para la reunión", "requeridas": ["informe de ventas", "viernes"], "prohibidas": ["digo"]},
+  {"entrada": "bueno la idea es que la app sea más rápida, que vaya más rápido, sobre todo al abrir, que al abrir tarda mucho", "requeridas": ["rápid", "abrir"], "prohibidas": ["bueno"]},
+  {"entrada": "oye sabes si el martes hay reunión o la han movido al miércoles", "requeridas": ["martes", "miércoles"], "prohibidas": ["oye"], "pregunta": true},
+  {"entrada": "escríbele a Ana que llego tarde a la comida", "requeridas": ["Escríbele a Ana", "llego tarde"], "prohibidas": ["Hola"]},
+  {"entrada": "recuérdame llamar al fontanero mañana, al fontanero, por lo de la caldera", "requeridas": ["Recuérdame", "fontanero", "caldera"], "prohibidas": []},
+  {"entrada": "en el archivo package punto swift añade el target sintecla eval, o sea añade un executable target que se llame sintecla eval", "requeridas": ["target"], "prohibidas": ["o sea"], "tono": "technical"},
+  {"entrada": "hola marta te escribo porque el presupuesto que te mandé, el presupuesto de la reforma, tiene un error en el total, el total correcto son tres mil doscientos euros, un saludo", "requeridas": ["Marta", "reforma", "euros", "saludo"], "prohibidas": [], "tono": "formal"},
+  {"entrada": "y entonces le dije que no, que no podíamos, que no podíamos hacerlo esta semana porque esta semana estamos con lo de Valencia, lo de la obra de Valencia, y que la semana que viene sí", "requeridas": ["Valencia", "semana que viene"], "prohibidas": ["que no, que no"]},
+  {"entrada": "apunta que hay que comprar tornillos, tornillos del ocho, cinta americana y y guantes, guantes de trabajo", "requeridas": ["tornillos", "cinta americana", "guantes"], "prohibidas": ["y y"]},
+  {"entrada": "quedamos el jueves a las cinco, no perdón, el viernes a las cinco en la oficina, en la oficina de Madrid", "requeridas": ["viernes", "cinco", "oficina de Madrid"], "prohibidas": ["jueves", "perdón"]}
+]
