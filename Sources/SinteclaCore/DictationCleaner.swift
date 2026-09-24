@@ -2,7 +2,7 @@ import Foundation
 
 public struct CleanupResult: Equatable, Sendable {
   public enum Engine: String, Codable, Sendable {
-    case apple, rules
+    case gemini, apple, rules
   }
 
   public var text: String
@@ -36,10 +36,20 @@ public struct DictationCleaner: Sendable {
     chunk.count * 2 / 3 + 32
   }
 
+  /// Antes de la IA: reglas, reemplazos y corrección aproximada del diccionario.
+  public func preClean(_ raw: String) -> String {
+    let pre = dictionary.applyRules(to: rules.clean(raw))
+    return dictionary.fuzzyFix(pre, isKnownWord: isKnownWord)
+  }
+
+  /// Después de la IA: reemplazos, grafía de los términos y ajuste de tono.
+  public func finish(_ text: String, tone: Tone) -> String {
+    let text = dictionary.restoreTerms(dictionary.applyRules(to: text))
+    return ToneFormatter.postProcess(text, tone: tone)
+  }
+
   public func clean(_ raw: String, tone: Tone) async -> CleanupResult {
-    var pre = rules.clean(raw)
-    pre = dictionary.applyRules(to: pre)
-    pre = dictionary.fuzzyFix(pre, isKnownWord: isKnownWord)
+    let pre = preClean(raw)
     guard !pre.isEmpty else { return CleanupResult(text: "", engine: .rules) }
 
     let instructions = PromptLibrary.dictationInstructions(tone: tone)
@@ -58,10 +68,6 @@ public struct DictationCleaner: Sendable {
       pieces.append(TextMetrics.finalize(chunk))
     }
 
-    var text = pieces.joined(separator: " ")
-    text = dictionary.applyRules(to: text)
-    text = dictionary.restoreTerms(text)
-    text = ToneFormatter.postProcess(text, tone: tone)
-    return CleanupResult(text: text, engine: aiEverywhere ? .apple : .rules)
+    return CleanupResult(text: finish(pieces.joined(separator: " "), tone: tone), engine: aiEverywhere ? .apple : .rules)
   }
 }
