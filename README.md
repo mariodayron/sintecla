@@ -1,6 +1,6 @@
 # Sintecla
 
-Dictado por voz para macOS. Mantén pulsada la tecla 🌐, habla y suelta: el texto aparece limpio donde tengas el cursor, en cualquier app. La voz se transcribe y se limpia en tu Mac, sin límite de palabras y sin coste.
+Dictado por voz para macOS. Mantén pulsada la tecla 🌐, habla y suelta: el texto aparece limpio y ordenado donde tengas el cursor, en cualquier app. La voz se transcribe en tu Mac, sin límite de palabras; el texto lo ordena Gemini si pones una clave, o Apple Intelligence en tu Mac si no.
 
 Inspirada en [Typeless](https://typeless.com); no tiene relación con ella. La app está en español (y dicta también en inglés).
 
@@ -8,7 +8,7 @@ Inspirada en [Typeless](https://typeless.com); no tiene relación con ella. La a
 
 | | |
 |---|---|
-| **Dictado** | Quita muletillas y repeticiones, entiende las autocorrecciones («a las cinco, no perdón, a las seis»), pone puntuación y listas. El tono se adapta a la app (formal en Mail, informal en WhatsApp…) y, en Safari, a la web (Gmail, WhatsApp Web…). |
+| **Dictado** | Quita muletillas y repeticiones, ordena las ideas aunque las digas dos veces, entiende las autocorrecciones («a las cinco, no perdón, a las seis»), pone puntuación y listas. El tono se adapta a la app (formal en Mail, informal en WhatsApp…) y, en Safari, a la web (Gmail, WhatsApp Web…). |
 | **Traducción** | Hablas en español y pega en inglés (u otro idioma). |
 | **Ask Anything** | Con texto seleccionado: «hazlo más formal», «resúmelo»… Sin selección: preguntas rápidas o «busca X en YouTube». |
 | **Notas** | Una nota de voz larga, organizada en resumen, ideas y tareas. |
@@ -21,7 +21,7 @@ Inspirada en [Typeless](https://typeless.com); no tiene relación con ella. La a
 - Mac con **Apple Silicon** y **macOS 26** (Tahoe) o posterior.
 - **Apple Intelligence** activado: la limpieza del dictado usa el modelo de Apple en el Mac. Sin él, Sintecla limpia solo con reglas.
 - **Command Line Tools** de Xcode (no hace falta Xcode entero).
-- Opcional: una **clave de API de Gemini** ([Google AI Studio](https://aistudio.google.com/apikey)) para Ask Anything, las notas, las reuniones y el respaldo de la traducción. El dictado no la necesita.
+- Opcional: una **clave de API de Gemini** ([Google AI Studio](https://aistudio.google.com/apikey)) para ordenar mejor el dictado, Ask Anything, las notas, las reuniones y el respaldo de la traducción. El dictado funciona sin ella.
 
 ## Instalar
 
@@ -69,8 +69,9 @@ Las teclas que acompañan a 🌐 se cambian en **Ajustes → General → Atajos*
 
 ## Privacidad
 
-- **Al dictar no sale nada de tu Mac**: la transcripción (el `SpeechTranscriber` de Apple) y la limpieza (el modelo de Apple Intelligence) son locales.
-- **Solo va a Gemini**, y solo si pones una clave: Ask Anything, las notas, las actas de reuniones, la traducción cuando falla la de Apple y «Aprender de mi historial» (únicamente al pulsar ese botón).
+- **La voz no sale de tu Mac**: la transcripción (el `SpeechTranscriber` de Apple) es local.
+- **El texto del dictado va a Gemini** si pones una clave, para ordenarlo, junto con el nombre de la app (y la web, en Safari), «Mi estilo» y los términos del diccionario. Se apaga en **Ajustes → IA → «Ordenar el dictado con Gemini»**; apagado o sin clave, lo ordena el modelo de Apple Intelligence en tu Mac y no sale nada.
+- **Solo va a Gemini**, y solo si pones una clave: el dictado (salvo que lo apagues), Ask Anything, las notas, las actas de reuniones, la traducción cuando falla la de Apple y «Aprender de mi historial» (únicamente al pulsar ese botón).
 - **Tus datos** se quedan en tu Mac:
   - `~/Library/Application Support/Sintecla/` guarda el historial (las últimas 500 entradas), el diccionario, los tonos y las estadísticas (solo números).
   - `~/Documents/Sintecla/Reuniones/` guarda las actas.
@@ -88,9 +89,9 @@ Y quita Sintecla de Ajustes del Sistema → Privacidad y seguridad (Accesibilida
 ## Desarrollo
 
 - `swift run sintecla-tests`: los tests (Swift Testing). Sin Xcode, `swift test` no funciona; por eso van en un ejecutable aparte.
-- `swift run -c release sintecla-eval`: banco de calidad del dictado con el modelo local (`Resources/eval/`).
+- `swift run -c release sintecla-eval [--traduccion | --ordenar]`: bancos de calidad con el modelo local (`Resources/eval/`). El de ordenar con Gemini: `Sintecla --rewrite-bench`.
 - `scripts/make-icon.sh`: regenera `Resources/AppIcon.icns` a partir del dibujo en código.
-- Órdenes de prueba sin abrir la app: `Sintecla --gemini-check`, `--translate "texto"`, `--ask "orden"`, `--transcribe audio.aiff`… (lista completa en `Sources/Sintecla/DebugCommands.swift`).
+- Órdenes de prueba sin abrir la app: `Sintecla --gemini-check`, `--rewrite "texto"`, `--translate "texto"`, `--ask "orden"`, `--transcribe audio.aiff`… (lista completa en `Sources/Sintecla/DebugCommands.swift`).
 
 Estructura:
 

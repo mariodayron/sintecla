@@ -19,6 +19,8 @@ final class AppSettings {
   var geminiModel: String { didSet { defaults.set(geminiModel, forKey: "geminiModel") } }
   /// "Mi estilo": se añade a las instrucciones de edición y de notas.
   var myStyle: String { didSet { defaults.set(myStyle, forKey: "myStyle") } }
+  /// Con clave, ordenar el dictado con Gemini (spec «Ordenar el dictado»). Apagado: siempre en el Mac.
+  var cleanWithGemini: Bool { didSet { defaults.set(cleanWithGemini, forKey: "cleanWithGemini") } }
   /// Tras pegar, mirar si el usuario corrige alguna palabra y aprenderla (F4a).
   var learnCorrections: Bool { didSet { defaults.set(learnCorrections, forKey: "learnCorrections") } }
   /// Reuniones: guardar también el audio (mic.m4a y sistema.m4a) junto a la transcripción.
@@ -35,6 +37,7 @@ final class AppSettings {
       "language": "es_ES", "whisperMode": false, "soundsEnabled": true,
       "baseKey": BaseKey.fn.rawValue, "launchAtLogin": true,
       "translationTarget": TranslationLanguage.en.rawValue, "geminiModel": CloudConfig.defaultModel, "myStyle": "",
+      "cleanWithGemini": true,
       "learnCorrections": true,
       "saveMeetingAudio": true, "meetingNoticeShown": false,
     ])
@@ -47,6 +50,7 @@ final class AppSettings {
     translationTarget = TranslationLanguage(rawValue: defaults.string(forKey: "translationTarget") ?? "") ?? .en
     geminiModel = defaults.string(forKey: "geminiModel") ?? CloudConfig.defaultModel
     myStyle = defaults.string(forKey: "myStyle") ?? ""
+    cleanWithGemini = defaults.bool(forKey: "cleanWithGemini")
     learnCorrections = defaults.bool(forKey: "learnCorrections")
     saveMeetingAudio = defaults.bool(forKey: "saveMeetingAudio")
     meetingNoticeShown = defaults.bool(forKey: "meetingNoticeShown")

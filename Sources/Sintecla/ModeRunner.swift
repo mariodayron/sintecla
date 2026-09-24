@@ -47,10 +47,18 @@ struct ModeRunner {
     DictationCleaner(model: appleModel, dictionary: settings.dictionary, isKnownWord: { SpellChecker.isKnownWord($0) })
   }
 
+  /// Ordena con Gemini si hay clave y el interruptor está encendido (6 s, sin reintentos); si no, en el Mac.
+  func rewriter() -> DictationRewriter {
+    let cloud = settings.cleanWithGemini ? settings.cloudModel(timeout: DictationRewriter.timeout) : nil
+    cloud?.maxRetries = 0
+    return DictationRewriter(cloud: cloud, local: cleaner())
+  }
+
   private func dictation(_ r: Recording, tone: Tone) async -> (ModeOutput, HistoryEntry?) {
-    let result = await cleaner().clean(r.raw, tone: tone)
+    let result = await rewriter().rewrite(r.raw, tone: tone, appName: r.target.name, site: r.site, style: settings.myStyle)
     guard !result.text.isEmpty else { return (.message("No te he oído"), nil) }
-    return (.paste(result.text, keepInClipboard: false, notice: nil), entry(r, result.text, engine: result.engine.rawValue))
+    let notice = result.cloudError.map { "Limpieza local · " + $0.userMessage }
+    return (.paste(result.text, keepInClipboard: false, notice: notice), entry(r, result.text, engine: result.engine.rawValue))
   }
 
   private func translation(_ r: Recording, tone: Tone) async -> (ModeOutput, HistoryEntry?) {

@@ -339,7 +339,7 @@ struct AITab: View {
 
   var body: some View {
     Form {
-      Section("Gemini: Ask Anything, notas y respaldo de la traducción") {
+      Section("Gemini: dictado, Ask Anything, notas y respaldo de la traducción") {
         LabeledContent("Clave", value: settings.geminiKey.isEmpty ? "Sin clave" : "Guardada en el Llavero ✓")
         SecureField("Pega aquí tu clave de Google AI Studio", text: $keyField)
         HStack {
@@ -361,6 +361,10 @@ struct AITab: View {
           Text(status).font(.callout).foregroundStyle(.secondary)
         }
         TextField("Modelo", text: $settings.geminiModel)
+        Toggle("Ordenar el dictado con Gemini", isOn: $settings.cleanWithGemini)
+          .disabled(settings.geminiKey.isEmpty)
+        Text("Tus dictados se envían a Gemini para ordenarlos. Sin clave, sin conexión o apagado, se ordenan en el Mac.")
+          .font(.caption).foregroundStyle(.secondary)
         Link("Crear una clave en Google AI Studio", destination: URL(string: "https://aistudio.google.com/apikey")!)
       }
       Section("Mi estilo") {

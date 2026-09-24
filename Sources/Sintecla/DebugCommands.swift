@@ -6,6 +6,8 @@ import SinteclaCore
 ///   Sintecla --transcribe audio.aiff [es_ES|en_US]
 ///   Sintecla --translate "texto"            (al idioma de Ajustes → General → Traducir a)
 ///   Sintecla --ask "orden" ["texto seleccionado"]
+///   Sintecla --rewrite "texto" [formal|informal|technical|neutral]   (el dictado como en la app: Gemini si hay clave)
+///   Sintecla --rewrite-bench [ruta.json]    (banco de ordenar, por defecto Resources/eval/ordenar_es.json)
 ///   Sintecla --notes transcripcion.txt
 ///   Sintecla --gemini-check                 (texto y los dos esquemas JSON, con el error completo si falla)
 ///   Sintecla --ask-bench                    (10 preguntas seguidas, como dentro de la app: latencia y mediana)
@@ -17,6 +19,7 @@ import SinteclaCore
 enum DebugCommands {
   static let usage = """
     Uso: Sintecla --transcribe audio.aiff [es_ES|en_US] | --translate "texto" | --ask "orden" ["selección"]
+                  | --rewrite "texto" [tono] | --rewrite-bench [ruta.json]
                   | --notes transcripcion.txt | --gemini-check | --ask-bench | --mic-test [segundos]
                   | --meeting-summary transcripcion.jsonl | --meeting-pdf transcripcion.jsonl acta.pdf
                   | --meeting-record segundos carpeta | --make-icon carpeta.iconset
@@ -32,6 +35,8 @@ enum DebugCommands {
     case "--transcribe" where !rest.isEmpty: return { await transcribe(path: first, language: second ?? "es_ES") }
     case "--translate" where !rest.isEmpty: return { await translate(first) }
     case "--ask" where !rest.isEmpty: return { await ask(first, selection: second) }
+    case "--rewrite" where !rest.isEmpty: return { await rewrite(first, tone: second) }
+    case "--rewrite-bench": return { await rewriteBench(path: rest.first) }
     case "--notes" where !rest.isEmpty: return { await notes(path: first) }
     case "--gemini-check": return { await geminiCheck() }
     case "--ask-bench": return { await askBench() }
@@ -176,6 +181,48 @@ enum DebugCommands {
     let recording = Recording(mode: .ask, raw: command, audioSeconds: 0, target: (nil, nil), language: settings.language,
                               selection: selection.map { Selection(text: $0, editable: true) }, releasedAt: Date())
     return await run(recording, settings: settings)
+  }
+
+  /// `Sintecla --rewrite "texto" [tono]`: motor, milisegundos, el error de Gemini si lo hubo y el texto.
+  @MainActor
+  static func rewrite(_ text: String, tone: String?) async -> String {
+    let settings = AppSettings()
+    let start = Date()
+    let result = await rewriter(settings).rewrite(text, tone: Tone(rawValue: tone ?? "") ?? .neutral, style: settings.myStyle)
+    let ms = Int(Date().timeIntervalSince(start) * 1000)
+    let error = result.cloudError.map { " · " + $0.userMessage } ?? ""
+    return "[\(result.engine.rawValue) · \(ms) ms\(error)] \(result.text)"
+  }
+
+  /// `Sintecla --rewrite-bench [ruta.json]`: el banco de ordenar por el camino de la app. Solo manda los casos inventados.
+  @MainActor
+  static func rewriteBench(path: String?) async -> String {
+    let settings = AppSettings()
+    let file = path ?? "Resources/eval/ordenar_es.json"
+    guard let samples = try? EvalBench.load(file) else { return "ERROR: no se pudo leer \(file)" }
+    let rewriter = rewriter(settings)
+    if rewriter.cloud == nil { return "Sin Gemini: falta la clave o «Ordenar el dictado con Gemini» está apagado (Ajustes → IA)" }
+    var lines: [String] = []
+    var passed = 0
+    var latencies: [Double] = []
+    for sample in samples {
+      let start = Date()
+      let result = await rewriter.rewrite(sample.entrada, tone: sample.tono ?? .neutral, style: settings.myStyle)
+      latencies.append(Date().timeIntervalSince(start))
+      let problems = EvalBench.problems(in: result.text, for: sample)
+      if problems.isEmpty { passed += 1 }
+      let error = result.cloudError.map { " · " + $0.userMessage } ?? ""
+      lines.append("\(problems.isEmpty ? "✔" : "✘") [\(result.engine.rawValue)\(error)] \(sample.entrada)\n    → \(result.text)")
+      if !problems.isEmpty { lines.append("    " + problems.joined(separator: ", ")) }
+    }
+    lines.append(EvalBench.summary(passed: passed, total: samples.count, latencies: latencies))
+    return lines.joined(separator: "\n")
+  }
+
+  /// El de la app, con el modelo de Apple de respaldo.
+  @MainActor
+  private static func rewriter(_ settings: AppSettings) -> DictationRewriter {
+    ModeRunner(settings: settings, appleModel: AppleTextModel.isAvailable ? AppleTextModel() : nil).rewriter()
   }
 
   @MainActor
