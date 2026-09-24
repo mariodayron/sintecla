@@ -47,6 +47,25 @@ import Testing
     #expect(guardian.accepts(input: "subir los datos del brosanta", output: "Subir los datos de Brisenta.",
                              allowedNewWords: ["Brisenta"]))
   }
+
+  @Test func acceptsRemovingRepetitionsDownToThirtyPercent() {
+    let dictated = "lo que te quería decir es que el pedido del cliente de Valencia, el pedido de Valencia, no ha llegado, "
+      + "que no ha llegado todavía"
+    #expect(guardian.accepts(input: dictated, output: "El pedido del cliente de Valencia no ha llegado todavía."))  // 44 %
+    #expect(!guardian.accepts(input: dictated, output: "No ha llegado."))  // 11 %
+  }
+
+  @Test func allowsAQuarterOfNewWords() {
+    #expect(guardian.accepts(input: "mañana llamo al proveedor por el pedido",
+                             output: "Mañana llamo seguro al proveedor por el pedido."))  // 1 de 5
+    #expect(!guardian.accepts(input: "mañana llamo al proveedor por el pedido",
+                              output: "Mañana llamo sin falta al proveedor por el pedido."))  // 2 de 6
+  }
+
+  @Test func listMarkersAreNotNewWords() {
+    #expect(guardian.accepts(input: "primero abre el terminal luego ejecuta swift build y después lanza los tests",
+                             output: "1. Abre el terminal.\n2. Ejecuta swift build.\n3. Lanza los tests."))
+  }
 }
 
 @Suite struct ChunkerTests {
