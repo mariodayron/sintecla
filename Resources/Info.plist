@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleIdentifier</key><string>local.sintecla.app</string>
+  <key>CFBundleName</key><string>Sintecla</string>
+  <key>CFBundleDisplayName</key><string>Sintecla</string>
+  <key>CFBundleExecutable</key><string>Sintecla</string>
+  <key>CFBundlePackageType</key><string>APPL</string>
+  <key>CFBundleIconFile</key><string>AppIcon</string>
+  <key>CFBundleShortVersionString</key><string>0.7.0</string>
+  <key>CFBundleVersion</key><string>8</string>
+  <key>LSMinimumSystemVersion</key><string>26.0</string>
+  <key>LSUIElement</key><true/>
+  <key>NSHighResolutionCapable</key><true/>
+  <key>NSMicrophoneUsageDescription</key><string>Sintecla usa el micrófono para transcribir lo que dictas.</string>
+  <key>NSSpeechRecognitionUsageDescription</key><string>Sintecla transcribe tu voz en este Mac, sin enviarla a internet.</string>
+  <key>NSAudioCaptureUsageDescription</key><string>Sintecla graba el audio de tus reuniones para resumirlas.</string>
+</dict>
+</plist>
