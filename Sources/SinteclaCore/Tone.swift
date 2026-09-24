@@ -96,6 +96,16 @@ public enum ToneFormatter {
     }
   }
 
+  /// Línea de tono para Gemini, más detallada que la del modelo local (spec «Ordenar el dictado» §3).
+  public static func cloudInstruction(for tone: Tone) -> String {
+    switch tone {
+    case .formal: "formal: frases completas y cuidadas; si hay saludo o despedida, cada uno en su propia línea; mantén el tú o el usted que use"
+    case .informal: "informal de chat: frases cortas y naturales, puntuación ligera"
+    case .technical: "técnico: conserva literalmente términos técnicos, nombres de código, comandos, rutas y palabras en inglés; si describe pasos, ponlos en lista numerada"
+    case .neutral: "neutro: claro y correcto"
+    }
+  }
+
   /// Ajuste final tras la IA. Informal: sin punto final si es un único enunciado. Formal: saludo y despedida en su
   /// propia línea (el modelo local no lo hace aunque se le pida).
   public static func postProcess(_ text: String, tone: Tone) -> String {
