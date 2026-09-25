@@ -1,6 +1,8 @@
 # Módulos y batería — Diseño
 
 - **Estado:** diseño aprobado por el usuario el 2026-09-25.
+  - El plan 1 (módulos y menú por bloques) está hecho y aceptado.
+  - **La batería (planes 2 y 3) queda aparcada desde el 2026-09-25,** por el bloqueo de las claves del SMC en macOS 26.7 y 27 (§12).
 - **Relación:**
   - Sigue a `2026-09-25-herramientas-finder-design.md` (0.9.0). Su hoja de ruta ponía la batería al final; el usuario la adelanta.
   - La sección «Herramientas» de la 0.9.0 pasa a ser el módulo Finder.
@@ -395,3 +397,31 @@ Una versión, **0.10.0**, en la rama `bateria`, con tres planes seguidos. Cada u
 | Dos apps controlando la carga | Con AlDente funcionando, Sintecla no toca nada (§4.8) |
 | Enlaces `sintecla://` abiertos desde una web | El navegador pregunta antes de abrir la app, y los valores están acotados: como mucho, se descarga hasta el 20 % |
 | Descarga que no se para | Suelo del 20 % (10 % en calibración), se para al desenchufar, y al reiniciar el ayudante el cargador vuelve a conectarse |
+
+## 12. Batería aparcada (2026-09-25)
+
+Al empezar el plan 2 salieron dos cosas que cambian el diseño:
+
+- **Apple bloquea las claves de carga.**
+  - **Desde cuándo:** macOS 27 beta 4 y las actualizaciones 26.7 y 15.8 (firmware 20457.1.29 o posterior).
+  - **Qué queda bloqueado:** `CHTE`, `CH0B`, `CH0C` y las del límite del firmware (`bfF0`, `bfD0`, `bfE0`). Tras una comprobación de entitlement, devuelven «no autorizado» incluso como root.
+  - **Qué sigue funcionando,** según batt (#152): `CHIE` (el cargador) y `ACLC` (el LED). Otro proyecto dice que `CHIE` también falla.
+  - **Consecuencia:** afecta a todo lo que pausa la carga (§4.2 a §4.6), que es la base de este diseño.
+- **macOS 26.4 trae su propio límite de carga** (Ajustes → Batería → Carga ⓘ):
+  - del 80 al 100 %, en pasos de 5;
+  - lo aplica el firmware, también dormido y tras reiniciar;
+  - baja solo si se está por encima;
+  - de vez en cuando carga al 100 % para calibrar.
+  - **No se sabe aún** si una app puede cambiarlo sin código privado de Apple.
+- **En el Mac de las pruebas (26.6, firmware 18000.161.10)**, `CHTE` = 0 y `CHLT` = `50 01 05` (¿límite del 80 % del firmware?).
+
+**Para retomarla:** rehacer §4 y §5 sobre un diseño híbrido.
+- El límite de base lo pone macOS.
+- El SMC añade lo que siga permitido en cada versión (descargar con `CHIE`, el LED).
+- El ayudante detecta qué puede hacer y lo dice.
+
+**Fuentes:**
+- batt: issue #152 y PR #154;
+- battery (actuallymentor): PR #480;
+- MacRumors y AppleInsider sobre macOS 26.4 (febrero de 2026);
+- Apple: «About Optimized Battery Charging and Charge Limit on Mac».
