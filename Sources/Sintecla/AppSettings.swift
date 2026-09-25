@@ -27,6 +27,8 @@ final class AppSettings {
   var saveMeetingAudio: Bool { didSet { defaults.set(saveMeetingAudio, forKey: "saveMeetingAudio") } }
   /// El aviso de "informa a los participantes" ya se mostró (sale la primera vez que se graba).
   var meetingNoticeShown: Bool { didSet { defaults.set(meetingNoticeShown, forKey: "meetingNoticeShown") } }
+  /// Herramientas: cortar y pegar archivos en Finder con ⌘X y ⌘V. Apagada por defecto, como todas las herramientas.
+  var finderCut: Bool { didSet { defaults.set(finderCut, forKey: "finderCut") } }
   var dictionary: PersonalDictionary { didSet { try? JSONFileStore.save(dictionary, to: AppPaths.dictionaryURL) } }
   var tones: ToneRules { didSet { try? JSONFileStore.save(tones, to: AppPaths.tonesURL) } }
   /// Vacía si no hay clave. Se cambia con `setGeminiKey(_:)`.
@@ -40,6 +42,7 @@ final class AppSettings {
       "cleanWithGemini": true,
       "learnCorrections": true,
       "saveMeetingAudio": true, "meetingNoticeShown": false,
+      "finderCut": false,
     ])
     language = defaults.string(forKey: "language") ?? "es_ES"
     whisperMode = defaults.bool(forKey: "whisperMode")
@@ -54,6 +57,7 @@ final class AppSettings {
     learnCorrections = defaults.bool(forKey: "learnCorrections")
     saveMeetingAudio = defaults.bool(forKey: "saveMeetingAudio")
     meetingNoticeShown = defaults.bool(forKey: "meetingNoticeShown")
+    finderCut = defaults.bool(forKey: "finderCut")
     dictionary = JSONFileStore.load(PersonalDictionary.self, from: AppPaths.dictionaryURL) ?? PersonalDictionary()
     tones = JSONFileStore.load(ToneRules.self, from: AppPaths.tonesURL) ?? .defaults
     geminiKey = Keychain.read(account: Keychain.geminiAccount) ?? ""

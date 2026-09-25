@@ -26,12 +26,12 @@ enum Paster {
     if restoreClipboard { restore(saved, to: pasteboard) }
   }
 
-  /// ⌘ + tecla, marcado para que nuestro EventTap lo ignore.
-  static func postCommand(key: CGKeyCode) {
+  /// ⌘ + tecla (con `extra`, otras modificadoras: ⌥ para ⌥⌘V), marcado para que nuestro EventTap lo ignore.
+  static func postCommand(key: CGKeyCode, extra: CGEventFlags = []) {
     let source = CGEventSource(stateID: .combinedSessionState)
     for isDown in [true, false] {
       guard let event = CGEvent(keyboardEventSource: source, virtualKey: key, keyDown: isDown) else { continue }
-      event.flags = .maskCommand
+      event.flags = CGEventFlags.maskCommand.union(extra)
       event.setIntegerValueField(.eventSourceUserData, value: EventTap.syntheticMarker)
       event.post(tap: .cghidEventTap)
     }

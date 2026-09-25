@@ -14,6 +14,9 @@ final class EventTap {
   }
   /// Devuelve `true` si el evento debe tragarse (no llega a la app activa).
   var onEvent: ((HotkeyEvent) -> Bool)?
+  /// Cada pulsación que no usan los atajos, con su código y sus modificadores, para las herramientas (cortar y pegar
+  /// en Finder). Devuelve `true` si hay que tragársela.
+  var onKeyDown: ((_ keyCode: Int64, _ modifiers: Set<ComboModifier>) -> Bool)?
 
   private var tap: CFMachPort?
   private var runLoopSource: CFRunLoopSource?
@@ -82,7 +85,8 @@ final class EventTap {
       case 53: .escape(at: now)
       default: .otherKey(at: now)
       }
-      if onEvent?(hotkeyEvent) == true {
+      // Los atajos de dictado van primero: lo que usan no llega a las herramientas.
+      if onEvent?(hotkeyEvent) == true || onKeyDown?(keyCode, Self.modifiers(from: event.flags)) == true {
         swallowedKeyUps.insert(keyCode)
         return nil
       }
@@ -96,10 +100,17 @@ final class EventTap {
   }
 
   private func comboModifiers(from flags: CGEventFlags) -> Set<ComboModifier> {
+    var set = Self.modifiers(from: flags)
+    if !base.optionIsModifier { set.remove(.option) }
+    return set
+  }
+
+  /// Las teclas modificadoras pulsadas, todas (también la ⌥ cuando es la tecla base).
+  static func modifiers(from flags: CGEventFlags) -> Set<ComboModifier> {
     var set: Set<ComboModifier> = []
     if flags.contains(.maskShift) { set.insert(.shift) }
     if flags.contains(.maskControl) { set.insert(.control) }
-    if flags.contains(.maskAlternate) && base.optionIsModifier { set.insert(.option) }
+    if flags.contains(.maskAlternate) { set.insert(.option) }
     if flags.contains(.maskCommand) { set.insert(.command) }
     return set
   }

@@ -34,6 +34,8 @@ final class DictationController {
 
   private let meetings: MeetingLibrary
   private lazy var recorder = MeetingRecorder(settings: settings, library: meetings)
+  /// Herramientas: cortar y pegar archivos en Finder.
+  private lazy var finderCutter = FinderCutter(settings: settings)
 
   init(settings: AppSettings, meetings: MeetingLibrary) {
     self.settings = settings
@@ -50,6 +52,10 @@ final class DictationController {
     eventTap.onEvent = { [weak self] event in
       MainActor.assumeIsolated { self?.handle(event) ?? false }
     }
+    eventTap.onKeyDown = { [weak self] keyCode, modifiers in
+      MainActor.assumeIsolated { self?.finderCutter.keyDown(keyCode: keyCode, modifiers: modifiers) ?? false }
+    }
+    finderCutter.onNotice = { [weak self] text in self?.showToolNotice(text) }
     applySettings()
     guard eventTap.start() else { return false }
     try? history.compact()
@@ -377,6 +383,12 @@ final class DictationController {
   }
 
   // MARK: - Pastilla
+
+  /// Aviso de una herramienta. El dictado va primero: si se está grabando o procesando, no sale.
+  private func showToolNotice(_ text: String) {
+    guard machine.state == .idle, session == nil else { return }
+    show(.notice(text, symbol: FinderCutter.symbol))
+  }
 
   private func show(_ phase: OverlayModel.Phase) {
     hideTask?.cancel()
