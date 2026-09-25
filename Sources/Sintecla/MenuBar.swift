@@ -36,7 +36,9 @@ struct MenuActions {
   var settingsChanged: () -> Void
 }
 
-/// Icono de la barra de menú y su menú (se reconstruye cada vez que se abre).
+/// Icono de la barra de menú y su menú, por bloques: uno por módulo encendido (spec «Módulos y batería» §3.2).
+/// Es un menú de macOS (se reconstruye cada vez que se abre): «Pegar último resultado» pega en la app de delante,
+/// y Esc, los atajos y cerrar al pulsar fuera son los de siempre.
 @MainActor
 final class MenuBarController: NSObject, NSMenuDelegate {
   private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
@@ -60,16 +62,27 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
   func menuNeedsUpdate(_ menu: NSMenu) {
     menu.removeAllItems()
-    let status = NSMenuItem(title: isReady ? "Sintecla: lista" : "Sintecla: faltan permisos", action: nil, keyEquivalent: "")
+    // El micrófono lo elige macOS (Ajustes del Sistema → Sonido → Entrada); Sintecla usa ese.
+    let microphone = AudioDevices.defaultInputName() ?? "ninguno"
+    let status = NSMenuItem(title: isReady ? "Sintecla: lista · Micrófono: \(microphone)" : "Sintecla: faltan permisos",
+                            action: nil, keyEquivalent: "")
     status.isEnabled = false
     menu.addItem(status)
-    // El micrófono lo elige macOS (Ajustes del Sistema → Sonido → Entrada); Sintecla usa ese.
-    let microphone = NSMenuItem(title: "Micrófono: \(AudioDevices.defaultInputName() ?? "ninguno")",
-                                action: nil, keyEquivalent: "")
-    microphone.isEnabled = false
-    menu.addItem(microphone)
-    menu.addItem(.separator())
+    if !isReady { menu.addItem(ClosureMenuItem("Revisar permisos…", handler: actions.showPermissions)) }
 
+    let modules = settings.modules
+    if modules.dictation { addDictation(to: menu) }
+    if modules.meetings { addMeetings(to: menu) }
+
+    menu.addItem(.separator())
+    menu.addItem(ClosureMenuItem("Abrir Sintecla…", key: "o", handler: actions.showMain))
+    menu.addItem(ClosureMenuItem("Ajustes…", key: ",", handler: actions.showSettings))
+    menu.addItem(ClosureMenuItem("Salir de Sintecla", key: "q") { NSApp.terminate(nil) })
+  }
+
+  private func addDictation(to menu: NSMenu) {
+    menu.addItem(.separator())
+    menu.addItem(.sectionHeader(title: "Dictado"))
     let languageItem = NSMenuItem(title: "Idioma de dictado", action: nil, keyEquivalent: "")
     let languageMenu = NSMenu()
     for (code, name) in [("es_ES", "Español (España)"), ("en_US", "English (US)")] {
@@ -80,11 +93,6 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     }
     languageItem.submenu = languageMenu
     menu.addItem(languageItem)
-    menu.addItem(ClosureMenuItem("Modo susurro", checked: settings.whisperMode) { [weak self] in
-      guard let self else { return }
-      self.settings.whisperMode.toggle()
-      self.actions.settingsChanged()
-    })
     let targetItem = NSMenuItem(title: "Traducir a", action: nil, keyEquivalent: "")
     let targetMenu = NSMenu()
     for target in TranslationLanguage.allCases {
@@ -94,7 +102,23 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     }
     targetItem.submenu = targetMenu
     menu.addItem(targetItem)
+    menu.addItem(ClosureMenuItem("Modo susurro", checked: settings.whisperMode) { [weak self] in
+      guard let self else { return }
+      self.settings.whisperMode.toggle()
+      self.actions.settingsChanged()
+    })
+    menu.addItem(ClosureMenuItem("Pegar último resultado", handler: actions.pasteLast))
+    menu.addItem(ClosureMenuItem("Añadir selección al diccionario", handler: actions.addToDictionary))
+    let pending = actions.pendingNotes()
+    if pending > 0 {
+      menu.addItem(ClosureMenuItem("Notas sin procesar (\(pending))…", handler: actions.showPendingNotes))
+    }
+    menu.addItem(ClosureMenuItem("Historial…", handler: actions.showHistory))
+  }
+
+  private func addMeetings(to menu: NSMenu) {
     menu.addItem(.separator())
+    menu.addItem(.sectionHeader(title: "Reuniones"))
     if let since = actions.meetingSince() {
       let minutes = Int(Date().timeIntervalSince(since) / 60)
       menu.addItem(ClosureMenuItem("■ Detener reunión (\(minutes) min)", handler: actions.toggleMeeting))
@@ -105,18 +129,5 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     if pendingMeetings > 0 {
       menu.addItem(ClosureMenuItem("Reuniones pendientes (\(pendingMeetings))…", handler: actions.showMeetings))
     }
-    menu.addItem(.separator())
-    menu.addItem(ClosureMenuItem("Pegar último resultado", handler: actions.pasteLast))
-    menu.addItem(ClosureMenuItem("Añadir selección al diccionario", handler: actions.addToDictionary))
-    let pending = actions.pendingNotes()
-    if pending > 0 {
-      menu.addItem(ClosureMenuItem("Notas sin procesar (\(pending))…", handler: actions.showPendingNotes))
-    }
-    menu.addItem(ClosureMenuItem("Abrir Sintecla…", key: "o", handler: actions.showMain))
-    menu.addItem(ClosureMenuItem("Historial…", handler: actions.showHistory))
-    menu.addItem(ClosureMenuItem("Ajustes…", key: ",", handler: actions.showSettings))
-    menu.addItem(ClosureMenuItem("Permisos…", handler: actions.showPermissions))
-    menu.addItem(.separator())
-    menu.addItem(ClosureMenuItem("Salir de Sintecla", key: "q") { NSApp.terminate(nil) })
   }
 }

@@ -15,7 +15,7 @@ Esta versión hace tres cosas:
 
 1. **Organiza Sintecla por módulos:** Dictado, Reuniones, Batería y Finder.
    - Hay una página de inicio con tarjetas y una página para encender o apagar cada módulo.
-   - El menú de la barra pasa a ser un panel con un bloque por módulo.
+   - El menú de la barra se ordena por bloques, uno por módulo.
 2. **La batería con todo lo de AlDente Pro:**
    - límite de carga, descarga, Top Up, Sailing y porcentaje real;
    - protección por calor y comportamiento en reposo;
@@ -38,7 +38,7 @@ Esta versión hace tres cosas:
 | **Finder** | Cortar y pegar archivos (0.9.0) | Cortar y pegar |
 
 - **La página «Módulos»** tiene un interruptor por módulo. Un módulo apagado no se ve ni funciona:
-  - desaparecen su tarjeta, sus páginas y su bloque del panel;
+  - desaparecen su tarjeta, sus páginas y su bloque del menú;
   - con Dictado apagado, los atajos de dictado no hacen nada;
   - con Reuniones apagado, no se puede grabar;
   - con Batería apagada, el ayudante devuelve la carga a macOS;
@@ -50,7 +50,7 @@ Esta versión hace tres cosas:
 - **La página «General»** se queda con lo común: abrir al iniciar sesión, sonidos y permisos.
 - **Pasan a Dictado → Atajos e idioma:** el modo susurro, el idioma, «Traducir a», la tecla base y el editor de atajos.
 
-## 3. Ventana y panel del menú
+## 3. Ventana y menú de la barra
 
 ### 3.1 Inicio
 
@@ -70,11 +70,15 @@ Esta versión hace tres cosas:
   - «Ajustes…» (⌘,) abre General;
   - «Reuniones pendientes» abre Reuniones.
 
-### 3.2 Panel del menú
+### 3.2 Menú de la barra
 
-El icono de Sintecla en la barra de menú abre un **panel** en lugar del menú de ahora. El icono sigue igual: en reposo o grabando.
+El icono de Sintecla abre su menú, **ordenado por bloques**: una cabecera por módulo encendido. El icono sigue igual: en reposo o grabando.
 
-- **Arriba:** una línea con el estado («Sintecla: lista» o «faltan permisos») y el micrófono.
+- **Cambio respecto al diseño aprobado (plan 1):** es un menú de macOS, no un panel propio.
+  - Un panel tendría que activar Sintecla para recibir el teclado, y entonces «Pegar último resultado» pegaría en Sintecla y no en la app de delante.
+  - Con el menú, Esc, los atajos y cerrar al pulsar fuera son los de macOS.
+  - El bloque de Batería (plan 2) lleva una vista propia dentro del menú para el deslizador y los botones.
+- **Arriba:** una línea con el estado («Sintecla: lista» o «faltan permisos») y el micrófono. Si faltan permisos, debajo, «Revisar permisos…».
 - **Un bloque por módulo encendido:**
   - **Batería:**
     - el porcentaje y el estado (§4.1);
@@ -84,10 +88,10 @@ El icono de Sintecla en la barra de menú abre un **panel** en lugar del menú d
   - **Dictado:**
     - el idioma, «Traducir a» (como menús) y el modo susurro;
     - «Pegar último resultado» y «Añadir selección al diccionario»;
-    - «Notas sin procesar (N)…», si hay.
+    - «Notas sin procesar (N)…», si hay;
+    - «Historial…».
   - **Reuniones:** «● Grabar reunión» o «■ Detener reunión (N min)», y «Reuniones pendientes (N)…» si hay.
-- **Pie:** Abrir Sintecla… (⌘O) · Ajustes… (⌘,) · Salir (⌘Q). Los atajos funcionan con el panel abierto.
-- **Cerrar:** el panel se cierra al pulsar fuera o con Esc.
+- **Pie:** Abrir Sintecla… (⌘O) · Ajustes… (⌘,) · Salir (⌘Q).
 
 ## 4. Batería: qué hace
 
@@ -103,7 +107,7 @@ El icono de Sintecla en la barra de menú abre un **panel** en lugar del menú d
 | **Calor** | Pausada por la protección por calor |
 | **Calibrando (paso N)** | En el ciclo de calibración |
 | **Con batería** | Desenchufado |
-| **macOS** | La carga la lleva macOS: módulo apagado, sin ayudante, AlDente funcionando o Mac no compatible. El panel dice el motivo |
+| **macOS** | La carga la lleva macOS: módulo apagado, sin ayudante, AlDente funcionando o Mac no compatible. El menú dice el motivo |
 
 ### 4.2 Límite y porcentaje
 
@@ -175,7 +179,7 @@ Las apps no se ejecutan con el Mac dormido. Si el Mac se duerme cargando, llega 
 |---|---|---|
 | `SinteclaBattery` | Librería nueva, pura, con tests | Toda la decisión: estado, qué escribir (cargar, pausar, cargador, LED), Sailing, calor, reposo, Top Up, ciclo de calibración, fechas de la programación y los mensajes entre la app y el ayudante |
 | `sintecla-battery` | Ejecutable nuevo (el ayudante, con permisos de root) | Lee la batería (IOKit, `AppleSmartBattery`), escribe en el SMC, recibe los avisos de energía y de reposo, sirve el socket y aplica lo que decide `SinteclaBattery` |
-| App | `Sintecla` | Cliente del socket, instalador, páginas de Batería, bloque del panel, enlaces `sintecla://` y consultas por línea de órdenes |
+| App | `Sintecla` | Cliente del socket, instalador, páginas de Batería, bloque del menú, enlaces `sintecla://` y consultas por línea de órdenes |
 
 ### 5.2 Cuándo decide
 
@@ -315,7 +319,7 @@ Los valores de `ACLC` se confirman en el prototipo (§5.4).
 | `Module` y su visibilidad | Core | Los módulos, sus páginas, qué tarjetas y bloques se ven según los interruptores, y el paso de ajustes desde la 0.9.0. Puro, con tests |
 | `AppSettings` | App | Interruptores de módulo (`moduleDictation`, `moduleMeetings`, `moduleBattery`; Finder usa `finderCut`) |
 | `MainWindow` y páginas | App | Inicio, Módulos, General y la barra lateral por módulo. Las páginas de ahora se mueven, no se rehacen |
-| Panel del menú | App | Sustituye el `NSMenu` de `MenuBar.swift`: SwiftUI en un panel anclado al icono |
+| Menú por bloques | App | `MenuBar.swift`: una cabecera por módulo encendido (`NSMenuItem.sectionHeader`). El bloque de Batería (plan 2) lleva una vista propia para el deslizador y los botones |
 | `DictationController` | App | Con Dictado apagado, no atiende los atajos de dictado. Finder sigue funcionando |
 | `Package.swift` | — | Targets `SinteclaBattery` y `sintecla-battery`; `SinteclaCoreTests` depende también de `SinteclaBattery` |
 | `AppInfo`, `Info.plist`, `SmokeTests` | Core / app / tests | Versión 0.10.0 (build 11); esquema `sintecla` |
@@ -351,7 +355,7 @@ Los valores de `ACLC` se confirman en el prototipo (§5.4).
 - Inicio con las tarjetas.
 - Encender y apagar cada módulo: desaparece y deja de funcionar.
 - Las páginas movidas funcionan.
-- El panel del menú hace todo lo del menú de antes.
+- El menú por bloques hace todo lo del menú de antes.
 - El dictado, como en la 0.9.0.
 
 **Plan 2** (con permiso, AlDente cerrado):
@@ -376,8 +380,8 @@ Los valores de `ACLC` se confirman en el prototipo (§5.4).
 
 Una versión, **0.10.0**, en la rama `bateria`, con tres planes seguidos. Cada uno acaba con su aceptación:
 
-1. **Ventana por módulos y panel del menú** (§2, §3). Sin batería: la tarjeta y el bloque de Batería llegan con el plan 2.
-2. **Batería básica** (§4, §5): `SinteclaBattery`, el ayudante y su instalación, las páginas Estado, Carga y Ajustes, y el bloque del panel.
+1. **Ventana por módulos y menú por bloques** (§2, §3). Sin batería: la tarjeta y el bloque de Batería llegan con el plan 2.
+2. **Batería básica** (§4, §5): `SinteclaBattery`, el ayudante y su instalación, las páginas Estado, Carga y Ajustes, y el bloque del menú.
 3. **Calibración, programación y extras** (§6, §7), versión 0.10.0, README y spec principal.
 
 ## 11. Riesgos

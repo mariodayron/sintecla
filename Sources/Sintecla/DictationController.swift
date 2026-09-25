@@ -99,6 +99,9 @@ final class DictationController {
       card.close()
       return true
     }
+    // Con el módulo Dictado apagado no hay atajos de la tecla base (tampoco el de reunión). Lo que se esté grabando
+    // termina con normalidad.
+    if !settings.moduleDictation, machine.state == .idle { return false }
     let actions = machine.handle(event)
     actions.forEach(perform)
     return actions.contains(.swallowKey)
@@ -313,8 +316,9 @@ final class DictationController {
 
   // MARK: - Reuniones
 
+  /// Con el módulo Reuniones apagado no se empieza ninguna; la que esté en curso sí se puede terminar.
   func toggleMeeting() {
-    if recorder.isRecording { stopMeeting() } else { startMeeting() }
+    if recorder.isRecording { stopMeeting() } else if settings.moduleMeetings { startMeeting() }
   }
 
   func retryMeeting(_ record: MeetingRecord) {
