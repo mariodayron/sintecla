@@ -66,6 +66,11 @@ struct HomeView: View {
       .buttonStyle(.glass)
     case .finder:
       Text("⌘X corta y ⌘V mueve archivos en Finder").foregroundStyle(.secondary)
+    case .captures:
+      Text(CaptureShortcut.summary).foregroundStyle(.secondary)
+      if !ScreenCapture.hasPermission {
+        Label(CaptureNotice.noPermission, systemImage: "exclamationmark.triangle").font(.callout)
+      }
     }
   }
 }

@@ -112,6 +112,7 @@ struct MainView: View {
     case .hotkeys: DictationSettingsTab(settings: settings, onChange: onSettingsChange)
     case .meetings: MeetingsPage(library: meetings, actions: meetingActions, settings: settings)
     case .finderCut: FinderCutPage()
+    case .captures: CapturesPage()
     }
   }
 }

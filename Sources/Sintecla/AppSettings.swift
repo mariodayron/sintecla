@@ -32,6 +32,8 @@ final class AppSettings {
   /// Módulos Dictado y Reuniones (spec «Módulos y batería» §2), encendidos por defecto.
   var moduleDictation: Bool { didSet { defaults.set(moduleDictation, forKey: "moduleDictation") } }
   var moduleMeetings: Bool { didSet { defaults.set(moduleMeetings, forKey: "moduleMeetings") } }
+  /// Módulo Capturas (spec «Capturas»), apagado por defecto.
+  var moduleCaptures: Bool { didSet { defaults.set(moduleCaptures, forKey: "moduleCaptures") } }
   var dictionary: PersonalDictionary { didSet { try? JSONFileStore.save(dictionary, to: AppPaths.dictionaryURL) } }
   var tones: ToneRules { didSet { try? JSONFileStore.save(tones, to: AppPaths.tonesURL) } }
   /// Vacía si no hay clave. Se cambia con `setGeminiKey(_:)`.
@@ -45,7 +47,7 @@ final class AppSettings {
       "cleanWithGemini": true,
       "learnCorrections": true,
       "saveMeetingAudio": true, "meetingNoticeShown": false,
-      "finderCut": false, "moduleDictation": true, "moduleMeetings": true,
+      "finderCut": false, "moduleDictation": true, "moduleMeetings": true, "moduleCaptures": false,
     ])
     language = defaults.string(forKey: "language") ?? "es_ES"
     whisperMode = defaults.bool(forKey: "whisperMode")
@@ -63,6 +65,7 @@ final class AppSettings {
     finderCut = defaults.bool(forKey: "finderCut")
     moduleDictation = defaults.bool(forKey: "moduleDictation")
     moduleMeetings = defaults.bool(forKey: "moduleMeetings")
+    moduleCaptures = defaults.bool(forKey: "moduleCaptures")
     dictionary = JSONFileStore.load(PersonalDictionary.self, from: AppPaths.dictionaryURL) ?? PersonalDictionary()
     tones = JSONFileStore.load(ToneRules.self, from: AppPaths.tonesURL) ?? .defaults
     geminiKey = Keychain.read(account: Keychain.geminiAccount) ?? ""
@@ -70,11 +73,12 @@ final class AppSettings {
 
   /// Qué módulos están encendidos. Finder es el interruptor `finderCut` de la 0.9.0.
   var modules: ModuleSwitches {
-    get { ModuleSwitches(dictation: moduleDictation, meetings: moduleMeetings, finder: finderCut) }
+    get { ModuleSwitches(dictation: moduleDictation, meetings: moduleMeetings, finder: finderCut, captures: moduleCaptures) }
     set {
       if moduleDictation != newValue.dictation { moduleDictation = newValue.dictation }
       if moduleMeetings != newValue.meetings { moduleMeetings = newValue.meetings }
       if finderCut != newValue.finder { finderCut = newValue.finder }
+      if moduleCaptures != newValue.captures { moduleCaptures = newValue.captures }
     }
   }
 
