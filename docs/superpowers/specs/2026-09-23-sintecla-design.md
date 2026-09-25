@@ -259,7 +259,8 @@ Selección por Accesibilidad con un tiempo máximo de 0,5 s por consulta. Si el 
 |---|---|---|
 | Formal | Mail, Outlook, Word, Pages, Spark | Puntuación completa, párrafos, saludo/despedida en línea propia, sin emojis |
 | Informal | WhatsApp, Telegram, Mensajes, Slack, Discord | Puntuación ligera, sin punto final si es un único enunciado |
-| Técnico | VS Code, Cursor, Terminal, iTerm2, Warp, Claude, ChatGPT | Términos técnicos e identificadores literales, listas Markdown |
+| Técnico | VS Code, Cursor, Terminal, iTerm2, Warp | Términos técnicos e identificadores literales, listas Markdown |
+| Prompt para IA (desde la 0.8.0) | Claude, ChatGPT, Codex; en Safari claude.ai, chatgpt.com, gemini.google.com | Lo que se pide primero, luego el contexto y los requisitos en lista con etiqueta corta, sin añadir nada (ver `2026-09-25-tono-prompt-design.md`) |
 | Neutro | resto | Estándar |
 
 Desde la F4b, en Safari el tono sale del dominio de la pestaña (Gmail formal, WhatsApp Web informal…), con su propia lista editable (ver `2026-09-24-tono-por-web-design.md`).

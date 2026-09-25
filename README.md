@@ -8,7 +8,7 @@ Inspirada en [Typeless](https://typeless.com); no tiene relación con ella. La a
 
 | | |
 |---|---|
-| **Dictado** | Quita muletillas y repeticiones, ordena las ideas aunque las digas dos veces, entiende las autocorrecciones («a las cinco, no perdón, a las seis»), pone puntuación y listas. El tono se adapta a la app (formal en Mail, informal en WhatsApp…) y, en Safari, a la web (Gmail, WhatsApp Web…). |
+| **Dictado** | Quita muletillas y repeticiones, ordena las ideas aunque las digas dos veces, entiende las autocorrecciones («a las cinco, no perdón, a las seis»), pone puntuación y listas. El tono se adapta a la app (formal en Mail, informal en WhatsApp, prompt ordenado en Claude o ChatGPT…) y, en Safari, a la web (Gmail, WhatsApp Web, claude.ai…). |
 | **Traducción** | Hablas en español y pega en inglés (u otro idioma). |
 | **Ask Anything** | Con texto seleccionado: «hazlo más formal», «resúmelo»… Sin selección: preguntas rápidas o «busca X en YouTube». |
 | **Notas** | Una nota de voz larga, organizada en resumen, ideas y tareas. |
