@@ -1,7 +1,7 @@
 # Sintecla — Especificación de diseño
 
 - **Fecha:** 2026-09-23
-- **Estado:** aprobado. F1 entregada (`v0.1.0`). F2 entregada (`v0.2.0`). F3 entregada (`v0.3.0`); queda por comprobar una reunión real de ≥ 20 min. F4a entregada (`v0.4.0`). F4b entregada (`v0.5.0`). Icono entregado (`v0.5.1`). F4c entregada (`v0.6.0`). Estadísticas entregadas (`v0.7.0`). Ordenar el dictado y tono «Prompt para IA» entregados (`v0.8.0`). Herramientas con cortar y pegar en Finder entregadas (`v0.9.0`).
+- **Estado:** aprobado. F1 entregada (`v0.1.0`). F2 entregada (`v0.2.0`). F3 entregada (`v0.3.0`); queda por comprobar una reunión real de ≥ 20 min. F4a entregada (`v0.4.0`). F4b entregada (`v0.5.0`). Icono entregado (`v0.5.1`). F4c entregada (`v0.6.0`). Estadísticas entregadas (`v0.7.0`). Ordenar el dictado y tono «Prompt para IA» entregados (`v0.8.0`). Herramientas con cortar y pegar en Finder entregadas (`v0.9.0`). Módulos y Capturas entregados (`v0.10.0`); la batería queda aparcada.
 - **Qué es:** app de dictado por voz para macOS que replica las funciones de Typeless (typeless.com) sin límite de palabras, con transcripción y limpieza locales y gratuitas, más dos extras: notas organizadas y actas de reuniones en PDF.
 
 ---

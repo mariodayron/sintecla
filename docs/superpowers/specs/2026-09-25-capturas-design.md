@@ -1,6 +1,6 @@
 # Capturas y texto de la pantalla — Diseño
 
-- **Estado:** diseño aprobado por el usuario el 2026-09-25.
+- **Estado:** diseño aprobado por el usuario el 2026-09-25. Entregado en `v0.10.0` (planes de Capturas 1 y 2 aceptados).
 - **Relación:**
   - Es un módulo más de `2026-09-25-bateria-modulos-design.md` (§2): tarjeta en Inicio, página, bloque del menú e interruptor en Módulos.
   - La batería de esa spec quedó aparcada (§12). Este módulo ocupa su sitio en la 0.10.0.
