@@ -40,8 +40,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       showHistory: { [weak self] in self?.mainWindow.show(.page(.history)) },
       showSettings: { [weak self] in self?.mainWindow.show(.general) },
       showPermissions: { [weak self] in self?.showOnboarding() },
-      settingsChanged: { [weak self] in self?.controller.applySettings() }))
+      settingsChanged: { [weak self] in self?.controller.applySettings() },
+      capture: { [weak self] in self?.controller.runCapture($0) }))
     controller.onRecordingChange = { [weak self] recording in self?.menuBar.setRecording(recording) }
+    controller.onShowCaptures = { [weak self] in self?.mainWindow.show(.page(.captures)) }
     LoginItem.set(settings.launchAtLogin)
 
     if Permissions.essentialsGranted, controller.start() {

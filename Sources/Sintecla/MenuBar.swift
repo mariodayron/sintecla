@@ -34,6 +34,7 @@ struct MenuActions {
   var showSettings: () -> Void
   var showPermissions: () -> Void
   var settingsChanged: () -> Void
+  var capture: (CaptureAction) -> Void
 }
 
 /// Icono de la barra de menú y su menú, por bloques: uno por módulo encendido (spec «Módulos y batería» §3.2).
@@ -73,6 +74,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     let modules = settings.modules
     if modules.dictation { addDictation(to: menu) }
     if modules.meetings { addMeetings(to: menu) }
+    if modules.captures { addCaptures(to: menu) }
 
     menu.addItem(.separator())
     menu.addItem(ClosureMenuItem("Abrir Sintecla…", key: "o", handler: actions.showMain))
@@ -114,6 +116,16 @@ final class MenuBarController: NSObject, NSMenuDelegate {
       menu.addItem(ClosureMenuItem("Notas sin procesar (\(pending))…", handler: actions.showPendingNotes))
     }
     menu.addItem(ClosureMenuItem("Historial…", handler: actions.showHistory))
+  }
+
+  private func addCaptures(to menu: NSMenu) {
+    menu.addItem(.separator())
+    menu.addItem(.sectionHeader(title: "Capturas"))
+    for action in CaptureAction.allCases {
+      let item = ClosureMenuItem(action.title, key: action.key) { [weak self] in self?.actions.capture(action) }
+      item.keyEquivalentModifierMask = [.shift, .command]
+      menu.addItem(item)
+    }
   }
 
   private func addMeetings(to menu: NSMenu) {

@@ -10,6 +10,8 @@ final class DictationController {
   let usage = UsageStatsStore(fileURL: AppPaths.statsURL)
   let drafts = DraftStore(directory: AppPaths.draftsDirectory)
   var onRecordingChange: ((Bool) -> Void)?
+  /// Abrir la página Capturas (falta el permiso de Grabación de pantalla).
+  var onShowCaptures: (() -> Void)?
 
   private let settings: AppSettings
   private let overlayModel = OverlayModel()
@@ -36,6 +38,8 @@ final class DictationController {
   private lazy var recorder = MeetingRecorder(settings: settings, library: meetings)
   /// Herramientas: cortar y pegar archivos en Finder.
   private lazy var finderCutter = FinderCutter(settings: settings)
+  /// Módulo Capturas.
+  private lazy var captures = CaptureController(settings: settings, appleModel: appleModel)
 
   init(settings: AppSettings, meetings: MeetingLibrary) {
     self.settings = settings
@@ -52,10 +56,17 @@ final class DictationController {
     eventTap.onEvent = { [weak self] event in
       MainActor.assumeIsolated { self?.handle(event) ?? false }
     }
+    // Después de los atajos de dictado: primero Finder y luego Capturas.
     eventTap.onKeyDown = { [weak self] keyCode, modifiers in
-      MainActor.assumeIsolated { self?.finderCutter.keyDown(keyCode: keyCode, modifiers: modifiers) ?? false }
+      MainActor.assumeIsolated {
+        guard let self else { return false }
+        return self.finderCutter.keyDown(keyCode: keyCode, modifiers: modifiers)
+          || self.captures.keyDown(keyCode: keyCode, modifiers: modifiers)
+      }
     }
-    finderCutter.onNotice = { [weak self] text in self?.showToolNotice(text) }
+    finderCutter.onNotice = { [weak self] text in self?.showToolNotice(text, symbol: FinderCutter.symbol) }
+    captures.onNotice = { [weak self] text, symbol in self?.showToolNotice(text, symbol: symbol) }
+    captures.onNeedsPermission = { [weak self] in self?.onShowCaptures?() }
     applySettings()
     guard eventTap.start() else { return false }
     try? history.compact()
@@ -84,6 +95,11 @@ final class DictationController {
         self?.show(.message("No se pudo preparar el dictado en \(locale.identifier)"))
       }
     }
+  }
+
+  /// Menú → Capturas.
+  func runCapture(_ action: CaptureAction) {
+    Task { await captures.run(action) }
   }
 
   func pasteLastResult() {
@@ -389,9 +405,9 @@ final class DictationController {
   // MARK: - Pastilla
 
   /// Aviso de una herramienta. El dictado va primero: si se está grabando o procesando, no sale.
-  private func showToolNotice(_ text: String) {
+  private func showToolNotice(_ text: String, symbol: String) {
     guard machine.state == .idle, session == nil else { return }
-    show(.notice(text, symbol: FinderCutter.symbol))
+    show(.notice(text, symbol: symbol))
   }
 
   private func show(_ phase: OverlayModel.Phase) {
