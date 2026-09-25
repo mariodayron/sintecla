@@ -15,6 +15,9 @@ final class CaptureController {
 
   private let settings: AppSettings
   private let appleModel: AppleTextModel?
+  /// La tarjeta de ⇧⌘1.
+  private lazy var card = CaptureTextCardPanel(assistant: { [unowned self] in self.assistant() },
+                                                preferred: { [unowned self] in self.settings.translationTarget })
   /// Una captura cada vez: mientras está la cruz de macOS, otro atajo no hace nada.
   private var busy = false
 
@@ -58,6 +61,15 @@ final class CaptureController {
       } else {
         onNotice?(CaptureNotice.text(text), Self.textSymbol)
       }
+      if action == .textCard { card.show(text) }
     }
+  }
+
+  /// Traductores: Apple y, de respaldo, Gemini. Modelos para preguntar: Gemini y, de respaldo, Apple.
+  private func assistant() -> CaptureAssistant {
+    let cloud = settings.cloudModel()
+    let apple: TextModel? = appleModel == nil ? nil : AppleTextModel(temperature: 0.4)
+    let translators: [Translating] = [AppleTranslator()] + [cloud.map { ModelTranslator(model: $0) as Translating }].compactMap { $0 }
+    return CaptureAssistant(translators: translators, models: [cloud as TextModel?, apple].compactMap { $0 })
   }
 }
