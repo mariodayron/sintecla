@@ -96,6 +96,13 @@ final class CenteringClipView: NSClipView {
   }
 }
 
+/// La ventana del editor. macOS no deja que Sintecla pase al frente desde un atajo global (activación cooperativa):
+/// como panel que no activa la app, sale delante de la app que se usa y toma el teclado igualmente.
+final class CaptureEditorPanel: NSPanel {
+  override var canBecomeKey: Bool { true }
+  override var canBecomeMain: Bool { true }
+}
+
 /// Una ventana por captura (spec «Capturas» §3): el lienzo con la barra y el portapapeles siempre al día (§3.3).
 @MainActor
 final class CaptureEditor: NSObject, NSWindowDelegate {
@@ -119,9 +126,11 @@ final class CaptureEditor: NSObject, NSWindowDelegate {
     model = CaptureEditorModel(image: shot.image, scale: scale)
     original = shot.png
     canvas = CaptureCanvasView(model: model)
-    window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 800, height: 600),
-                      styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
+    window = CaptureEditorPanel(contentRect: NSRect(x: 0, y: 0, width: 800, height: 600),
+                                styleMask: [.titled, .closable, .miniaturizable, .resizable, .nonactivatingPanel],
+                                backing: .buffered, defer: false)
     super.init()
+    window.hidesOnDeactivate = false
     window.title = "Captura · \(model.pixelSize)"
     window.isReleasedWhenClosed = false
     window.minSize = NSSize(width: 880, height: 320)
@@ -177,10 +186,8 @@ final class CaptureEditor: NSObject, NSWindowDelegate {
     window.setContentSize(size)
     window.setFrameOrigin(NSPoint(x: visible.midX - window.frame.width / 2, y: visible.midY - window.frame.height / 2))
     DockPresence.show(for: self)
-    NSApp.activate()
-    // Si macOS no deja pasar Sintecla al frente (se usa otra app), la ventana sale encima igualmente.
     window.orderFrontRegardless()
-    window.makeKeyAndOrderFront(nil)
+    window.makeKey()
     window.makeFirstResponder(canvas)
     window.contentView?.layoutSubtreeIfNeeded()
     zoom(.fit)
