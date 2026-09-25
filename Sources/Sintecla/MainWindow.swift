@@ -4,7 +4,7 @@ import SinteclaCore
 import SwiftUI
 
 enum MainSection: String, Hashable {
-  case meetings, history, stats, general, dictionary, tones, ai
+  case meetings, history, stats, general, dictionary, tones, ai, tools
 }
 
 @MainActor @Observable
@@ -56,6 +56,7 @@ struct MainView: View {
           Label("Diccionario", systemImage: "book").tag(MainSection.dictionary)
           Label("Tonos", systemImage: "textformat").tag(MainSection.tones)
           Label("IA", systemImage: "sparkles").tag(MainSection.ai)
+          Label("Herramientas", systemImage: "wrench.and.screwdriver").tag(MainSection.tools)
         }
       }
       .navigationSplitViewColumnWidth(min: 180, ideal: 200, max: 260)
@@ -75,6 +76,7 @@ struct MainView: View {
     case .dictionary: DictionaryTab(settings: settings).navigationTitle("Diccionario")
     case .tones: TonesTab(settings: settings).navigationTitle("Tonos")
     case .ai: AITab(settings: settings, history: history).navigationTitle("IA")
+    case .tools: ToolsTab(settings: settings).navigationTitle("Herramientas")
     }
   }
 }

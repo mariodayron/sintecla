@@ -14,6 +14,7 @@ Inspirada en [Typeless](https://typeless.com); no tiene relación con ella. La a
 | **Notas** | Una nota de voz larga, organizada en resumen, ideas y tareas. |
 | **Reuniones** | Graba tu micro y el audio del Mac, transcribe las dos pistas y te deja el acta en PDF. |
 | **Aprende de ti** | El diccionario aprende las palabras que corriges después de pegar; «Mi estilo» se saca de tu historial. |
+| **Herramientas** | Utilidades de Windows o de apps de pago, cada una con su interruptor y apagadas de fábrica. Por ahora, cortar y pegar archivos en Finder con ⌘X y ⌘V. Si ya usas otra app que cambia ⌘X en Finder, deja esta apagada. |
 | **Y además** | Historial, estadísticas, atajos configurables, modo susurro y tecla ⌥ derecha para teclados sin 🌐. |
 
 ## Requisitos
