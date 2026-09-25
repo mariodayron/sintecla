@@ -49,7 +49,7 @@ public enum NotesFormat: Equatable, Sendable {
   static let markdownApps: Set<String> = ["md.obsidian", "notion.id", "net.shinyfrog.bear"]
 
   public static func forApp(bundleID: String?, tone: Tone) -> NotesFormat {
-    if tone == .technical { return .markdown }
+    if tone == .technical || tone == .prompt { return .markdown }
     if let bundleID, markdownApps.contains(bundleID) { return .markdown }
     return .plainText
   }

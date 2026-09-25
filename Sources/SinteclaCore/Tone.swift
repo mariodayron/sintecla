@@ -2,13 +2,14 @@ import Foundation
 
 /// Tono de escritura según la app donde se dicta.
 public enum Tone: String, Codable, CaseIterable, Sendable {
-  case formal, informal, technical, neutral
+  case formal, informal, technical, prompt, neutral
 
   public var label: String {
     switch self {
     case .formal: "Formal"
     case .informal: "Informal"
     case .technical: "Técnico"
+    case .prompt: "Prompt para IA"
     case .neutral: "Neutro"
     }
   }
@@ -19,10 +20,18 @@ public struct ToneRules: Codable, Equatable, Sendable {
   public var byBundleID: [String: Tone]
   /// Dominio sin `www.` → tono. Solo cuenta en Safari (`SiteRules.browsers`).
   public var bySite: [String: Tone]
+  /// 2 desde la 0.8.0 (tono Prompt para IA). Los tones.json de antes no la tienen.
+  public var version: Int
 
-  public init(byBundleID: [String: Tone], bySite: [String: Tone] = [:]) {
+  public static let currentVersion = 2
+  /// Apps y webs de IA que en la 0.8.0 pasan de Técnico (su valor por defecto hasta entonces) a Prompt.
+  static let aiApps: Set<String> = ["com.anthropic.claudefordesktop", "com.openai.chat", "com.openai.codex"]
+  static let aiSites: Set<String> = ["claude.ai", "chatgpt.com", "gemini.google.com"]
+
+  public init(byBundleID: [String: Tone], bySite: [String: Tone] = [:], version: Int = Self.currentVersion) {
     self.byBundleID = byBundleID
     self.bySite = bySite
+    self.version = version
   }
 
   public init(from decoder: Decoder) throws {
@@ -30,6 +39,13 @@ public struct ToneRules: Codable, Equatable, Sendable {
     byBundleID = try container.decode([String: Tone].self, forKey: .byBundleID)
     // Los tones.json de antes de la 0.5.0 no tienen webs: reciben la lista inicial.
     bySite = try container.decodeIfPresent([String: Tone].self, forKey: .bySite) ?? Self.defaults.bySite
+    version = try container.decodeIfPresent(Int.self, forKey: .version) ?? 1
+    // Una sola vez: las apps y webs de IA que siguen en Técnico pasan a Prompt; otro tono elegido se respeta.
+    if version < 2 {
+      for id in Self.aiApps where byBundleID[id] == .technical { byBundleID[id] = .prompt }
+      for site in Self.aiSites where bySite[site] == .technical { bySite[site] = .prompt }
+      version = Self.currentVersion
+    }
   }
 
   /// En Safari, el tono de la web si está en la lista; si no, el de la app.
@@ -61,9 +77,10 @@ public struct ToneRules: Codable, Equatable, Sendable {
     "com.apple.Terminal": .technical,
     "com.googlecode.iterm2": .technical,
     "dev.warp.Warp-Stable": .technical,
-    "com.anthropic.claudefordesktop": .technical,
-    "com.openai.chat": .technical,
-    "com.openai.codex": .technical,
+    // Prompt para IA
+    "com.anthropic.claudefordesktop": .prompt,
+    "com.openai.chat": .prompt,
+    "com.openai.codex": .prompt,
   ], bySite: [
     // Formal
     "mail.google.com": .formal,
@@ -79,9 +96,10 @@ public struct ToneRules: Codable, Equatable, Sendable {
     "messenger.com": .informal,
     // Técnico
     "github.com": .technical,
-    "chatgpt.com": .technical,
-    "claude.ai": .technical,
-    "gemini.google.com": .technical,
+    // Prompt para IA
+    "chatgpt.com": .prompt,
+    "claude.ai": .prompt,
+    "gemini.google.com": .prompt,
   ])
 }
 
@@ -92,6 +110,7 @@ public enum ToneFormatter {
     case .formal: "Tono formal: frases completas y puntuación cuidada; si hay saludo o despedida, ponlos en su propia línea."
     case .informal: "Tono informal de chat: puntuación ligera y natural."
     case .technical: "Contexto técnico: conserva literalmente términos técnicos, nombres de código, rutas y palabras en inglés."
+    case .prompt: "Es un mensaje para una IA: pon primero lo que se pide y conserva literalmente términos técnicos, código, rutas y palabras en inglés."
     case .neutral: ""
     }
   }
@@ -102,8 +121,14 @@ public enum ToneFormatter {
     case .formal: "formal: frases completas y cuidadas; si hay saludo o despedida, cada uno en su propia línea; mantén el tú o el usted que use"
     case .informal: "informal de chat: frases cortas y naturales, puntuación ligera"
     case .technical: "técnico: conserva literalmente términos técnicos, nombres de código, comandos, rutas y palabras en inglés; si describe pasos, ponlos en lista numerada"
+    case .prompt: "prompt para una IA: empieza por lo que se pide y después el contexto; si hay 2 o más requisitos, condiciones o pasos, ponlos en lista con «- » bajo una etiqueta corta («Requisitos:», «Pasos:» o «Contexto:»); conserva literalmente términos técnicos, código, rutas y palabras en inglés; no añadas requisitos, roles, formatos ni peticiones que no haya dicho"
     case .neutral: "neutro: claro y correcto"
     }
+  }
+
+  /// Etiquetas que el tono Prompt pone a sus listas: el filtro no las cuenta como palabras nuevas.
+  public static func allowedLabels(for tone: Tone) -> [String] {
+    tone == .prompt ? ["Requisitos", "Contexto", "Pasos", "Objetivo"] : []
   }
 
   /// Ajuste final tras la IA. Informal: sin punto final si es un único enunciado. Formal: saludo y despedida en su
@@ -112,7 +137,7 @@ public enum ToneFormatter {
     switch tone {
     case .informal: dropFinalPeriod(text)
     case .formal: separateGreetingAndFarewell(text)
-    case .technical, .neutral: text
+    case .technical, .prompt, .neutral: text
     }
   }
 
