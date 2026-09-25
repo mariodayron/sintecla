@@ -11,6 +11,9 @@ public enum CaptureNotice {
     return "Texto copiado · \(words) \(words == 1 ? "palabra" : "palabras")"
   }
 
+  /// Tab en el editor: el color bajo el cursor.
+  public static func color(_ hex: String) -> String { "Color copiado: \(hex)" }
+
   public static func codes(_ codes: [RecognizedCode]) -> String {
     guard codes.count == 1, let code = codes.first else { return "\(codes.count) códigos copiados" }
     let payload = code.payload.count > maxPayload ? String(code.payload.prefix(maxPayload)) + "…" : code.payload
