@@ -58,7 +58,12 @@ No-objetivos: completar el prompt con lo que suele faltar (formato de respuesta,
 
 ## 4. Filtro
 
-Con el tono Prompt, las etiquetas **Requisitos, Contexto, Pasos y Objetivo** cuentan como palabras dichas: `DictationRewriter` las añade a las palabras permitidas (`ToneFormatter.allowedLabels(for:)`). El resto del filtro no cambia.
+Con el tono Prompt, en el camino de Gemini (`DictationRewriter`):
+
+- las etiquetas **Requisitos, Contexto, Pasos y Objetivo** cuentan como palabras dichas (`ToneFormatter.allowedLabels(for:)`);
+- se admite **hasta un 50 %** de palabras nuevas (`DictationRewriter.promptNovelRatio`), en vez del 25 %: al pasar a imperativo cambian muchas palabras («quiero que me hagas… que lea» → «Crea… Lee»). En el prototipo, un prompt bueno de Gemini tenía un 42 %.
+
+El resto del filtro no cambia: una respuesta en lugar del prompt se rechaza por la longitud (más de 1,3 veces la entrada) o porque la pregunta deja de serlo.
 
 ## 5. Piezas
 
@@ -84,4 +89,11 @@ Con el tono Prompt, las etiquetas **Requisitos, Contexto, Pasos y Objetivo** cue
   - una orden a la IA sobre un texto («resúmeme este texto…»), que no se ejecuta;
   - una pregunta técnica, que sigue siendo pregunta.
   - Objetivos: con Apple, al menos 10/15 (el listón del 66 % de `--ordenar`); con Gemini (`Sintecla --rewrite-bench`), al menos 13/15; y los demás bancos igual (42/42 y 20/20).
+  - El correo formal admite «euros|€»: Gemini a veces escribe «3200 €».
 - **Aceptación a mano:** en Claude (la app), dictar el ejemplo de §1: sale con la petición primero y los requisitos en lista, sin nada inventado. En ChatGPT (la web, en Safari), una pregunta: se pega la pregunta, ordenada.
+
+## 7. Lo que se vio en el prototipo
+
+- **Gemini** con el tono Prompt: 15, 13 y 14 de 15 en tres pasadas. Ejemplo real, con el dictado de §1: «Crea una función en Swift. / Contexto: / - Lee un JSON de la carpeta de documentos. / - Si el JSON está roto, no debe petar y hay que moverlo a otro sitio. / - Debe incluir tests.»
+- **Apple no sirve para órdenes a una IA,** ni con el tono Prompt ni con el Técnico: «hazme una función…», «resúmeme…» o «cómo se hace…» no pasan el filtro (las obedece o las contesta) y quedan solo con las reglas. Ya pasaba antes; solo afecta cuando no hay Gemini. Con Apple: 11/15 en el banco.
+
