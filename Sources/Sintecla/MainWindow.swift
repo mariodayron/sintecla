@@ -3,13 +3,9 @@ import Observation
 import SinteclaCore
 import SwiftUI
 
-enum MainSection: String, Hashable {
-  case meetings, history, stats, general, dictionary, tones, ai, tools
-}
-
 @MainActor @Observable
 final class MainNavigation {
-  var section: MainSection? = .meetings
+  var place: WindowPlace = .home
 }
 
 /// Lista de reuniones que ve la ventana (se recarga cuando una reunión cambia de estado).
@@ -35,7 +31,8 @@ struct MeetingActions {
   var retry: (MeetingRecord) -> Void
 }
 
-/// Ventana principal: barra lateral de Liquid Glass (nativa en macOS 26) con Reuniones, Historial, Estadísticas y Ajustes.
+/// Ventana principal (spec «Módulos y batería» §3.1): Inicio con una tarjeta por módulo; dentro de un módulo, barra
+/// lateral de Liquid Glass (nativa en macOS 26) solo con sus páginas.
 struct MainView: View {
   @Bindable var navigation: MainNavigation
   @Bindable var settings: AppSettings
@@ -43,40 +40,98 @@ struct MainView: View {
   let usage: UsageStatsStore
   let meetings: MeetingLibrary
   let meetingActions: MeetingActions
+  var showPermissions: () -> Void
   var onSettingsChange: () -> Void
 
   var body: some View {
-    NavigationSplitView {
-      List(selection: $navigation.section) {
-        Label("Reuniones", systemImage: "person.2.wave.2").tag(MainSection.meetings)
-        Label("Historial", systemImage: "clock.arrow.circlepath").tag(MainSection.history)
-        Label("Estadísticas", systemImage: "chart.bar").tag(MainSection.stats)
-        Section("Ajustes") {
-          Label("General", systemImage: "gearshape").tag(MainSection.general)
-          Label("Diccionario", systemImage: "book").tag(MainSection.dictionary)
-          Label("Tonos", systemImage: "textformat").tag(MainSection.tones)
-          Label("IA", systemImage: "sparkles").tag(MainSection.ai)
-          Label("Herramientas", systemImage: "wrench.and.screwdriver").tag(MainSection.tools)
+    let place = navigation.place.resolved(with: settings.modules)
+    Group {
+      if let module = place.module {
+        NavigationSplitView {
+          sidebar(module)
+        } detail: {
+          detail(place)
         }
+      } else {
+        NavigationStack { detail(place) }
       }
-      .navigationSplitViewColumnWidth(min: 180, ideal: 200, max: 260)
-    } detail: {
-      detail
     }
     .frame(minWidth: 820, minHeight: 560)
     .tint(.gray)  // sin colores: selección, interruptores y botones en gris neutro
   }
 
-  @ViewBuilder private var detail: some View {
-    switch navigation.section ?? .meetings {
-    case .meetings: MeetingsView(library: meetings, actions: meetingActions).navigationTitle("Reuniones")
-    case .history: HistoryView(store: history).navigationTitle("Historial")
-    case .stats: StatsView(store: usage).navigationTitle("Estadísticas")
-    case .general: GeneralTab(settings: settings, onChange: onSettingsChange).navigationTitle("General")
-    case .dictionary: DictionaryTab(settings: settings).navigationTitle("Diccionario")
-    case .tones: TonesTab(settings: settings).navigationTitle("Tonos")
-    case .ai: AITab(settings: settings, history: history).navigationTitle("IA")
-    case .tools: ToolsTab(settings: settings).navigationTitle("Herramientas")
+  private func sidebar(_ module: Module) -> some View {
+    List(selection: pageSelection) {
+      Button { navigation.place = .home } label: { Label("Inicio", systemImage: "chevron.backward") }
+        .buttonStyle(.plain)
+      Section(module.name) {
+        ForEach(module.pages, id: \.self) { page in
+          Label(page.title, systemImage: page.symbol).tag(page)
+        }
+      }
+    }
+    .navigationSplitViewColumnWidth(min: 180, ideal: 200, max: 260)
+  }
+
+  private var pageSelection: Binding<ModulePage?> {
+    Binding(get: { if case .page(let page) = navigation.place { page } else { nil } },
+            set: { if let page = $0 { navigation.place = .page(page) } })
+  }
+
+  @ViewBuilder private func detail(_ place: WindowPlace) -> some View {
+    switch place {
+    case .home:
+      HomeView(settings: settings, usage: usage, meetings: meetings, meetingActions: meetingActions, navigation: navigation)
+        .navigationTitle("Sintecla")
+    case .general:
+      GeneralTab(settings: settings, showPermissions: showPermissions, onChange: onSettingsChange)
+        .navigationTitle("General")
+        .toolbar { backHome }
+    case .modules:
+      ModulesView(settings: settings)
+        .navigationTitle("Módulos")
+        .toolbar { backHome }
+    case .page(let page):
+      pageView(page).navigationTitle(page.title)
+    }
+  }
+
+  private var backHome: some ToolbarContent {
+    ToolbarItem(placement: .navigation) {
+      Button { navigation.place = .home } label: { Label("Inicio", systemImage: "chevron.backward") }
+    }
+  }
+
+  @ViewBuilder private func pageView(_ page: ModulePage) -> some View {
+    switch page {
+    case .history: HistoryView(store: history)
+    case .stats: StatsView(store: usage)
+    case .dictionary: DictionaryTab(settings: settings)
+    case .tones: TonesTab(settings: settings)
+    case .ai: AITab(settings: settings, history: history)
+    case .hotkeys: DictationSettingsTab(settings: settings, onChange: onSettingsChange)
+    case .meetings: MeetingsPage(library: meetings, actions: meetingActions, settings: settings)
+    case .finderCut: FinderCutPage()
+    }
+  }
+}
+
+/// Reuniones → Reuniones: la lista y, abajo, dónde se guardan y si se guarda también el audio.
+struct MeetingsPage: View {
+  let library: MeetingLibrary
+  let actions: MeetingActions
+  @Bindable var settings: AppSettings
+
+  var body: some View {
+    VStack(spacing: 0) {
+      MeetingsView(library: library, actions: actions)
+      Divider()
+      HStack {
+        Toggle("Guardar también el audio de las reuniones", isOn: $settings.saveMeetingAudio)
+        Spacer()
+        Text("Actas en Documentos › Sintecla › Reuniones").font(.caption).foregroundStyle(.secondary)
+      }
+      .padding(.horizontal, 16).padding(.vertical, 10)
     }
   }
 }
@@ -215,8 +270,8 @@ final class MainWindowController: NSObject, NSWindowDelegate {
     self.makeContent = makeContent
   }
 
-  func show(_ section: MainSection? = nil) {
-    if let section { navigation.section = section }
+  func show(_ place: WindowPlace? = nil) {
+    if let place { navigation.place = place }
     if window == nil {
       let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 920, height: 620),
                             styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],

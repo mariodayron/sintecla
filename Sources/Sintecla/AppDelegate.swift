@@ -14,6 +14,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                      meetings: meetings,
                      meetingActions: MeetingActions(toggle: { [unowned self] in controller.toggleMeeting() },
                                                     retry: { [unowned self] in controller.retryMeeting($0) }),
+                     showPermissions: { [unowned self] in showOnboarding() },
                      onSettingsChange: { [unowned self] in
                        controller.applySettings()
                        LoginItem.set(settings.launchAtLogin)
@@ -35,8 +36,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       meetingSince: { [weak self] in self?.meetings.recordingSince },
       toggleMeeting: { [weak self] in self?.controller.toggleMeeting() },
       pendingMeetings: { [weak self] in self?.meetings.records.filter { $0.status == .pending }.count ?? 0 },
-      showMeetings: { [weak self] in self?.mainWindow.show(.meetings) },
-      showHistory: { [weak self] in self?.mainWindow.show(.history) },
+      showMeetings: { [weak self] in self?.mainWindow.show(.page(.meetings)) },
+      showHistory: { [weak self] in self?.mainWindow.show(.page(.history)) },
       showSettings: { [weak self] in self?.mainWindow.show(.general) },
       showPermissions: { [weak self] in self?.showOnboarding() },
       settingsChanged: { [weak self] in self?.controller.applySettings() }))

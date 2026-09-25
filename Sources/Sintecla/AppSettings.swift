@@ -27,8 +27,11 @@ final class AppSettings {
   var saveMeetingAudio: Bool { didSet { defaults.set(saveMeetingAudio, forKey: "saveMeetingAudio") } }
   /// El aviso de "informa a los participantes" ya se mostró (sale la primera vez que se graba).
   var meetingNoticeShown: Bool { didSet { defaults.set(meetingNoticeShown, forKey: "meetingNoticeShown") } }
-  /// Herramientas: cortar y pegar archivos en Finder con ⌘X y ⌘V. Apagada por defecto, como todas las herramientas.
+  /// Módulo Finder: cortar y pegar archivos con ⌘X y ⌘V. Apagado por defecto.
   var finderCut: Bool { didSet { defaults.set(finderCut, forKey: "finderCut") } }
+  /// Módulos Dictado y Reuniones (spec «Módulos y batería» §2), encendidos por defecto.
+  var moduleDictation: Bool { didSet { defaults.set(moduleDictation, forKey: "moduleDictation") } }
+  var moduleMeetings: Bool { didSet { defaults.set(moduleMeetings, forKey: "moduleMeetings") } }
   var dictionary: PersonalDictionary { didSet { try? JSONFileStore.save(dictionary, to: AppPaths.dictionaryURL) } }
   var tones: ToneRules { didSet { try? JSONFileStore.save(tones, to: AppPaths.tonesURL) } }
   /// Vacía si no hay clave. Se cambia con `setGeminiKey(_:)`.
@@ -42,7 +45,7 @@ final class AppSettings {
       "cleanWithGemini": true,
       "learnCorrections": true,
       "saveMeetingAudio": true, "meetingNoticeShown": false,
-      "finderCut": false,
+      "finderCut": false, "moduleDictation": true, "moduleMeetings": true,
     ])
     language = defaults.string(forKey: "language") ?? "es_ES"
     whisperMode = defaults.bool(forKey: "whisperMode")
@@ -58,9 +61,21 @@ final class AppSettings {
     saveMeetingAudio = defaults.bool(forKey: "saveMeetingAudio")
     meetingNoticeShown = defaults.bool(forKey: "meetingNoticeShown")
     finderCut = defaults.bool(forKey: "finderCut")
+    moduleDictation = defaults.bool(forKey: "moduleDictation")
+    moduleMeetings = defaults.bool(forKey: "moduleMeetings")
     dictionary = JSONFileStore.load(PersonalDictionary.self, from: AppPaths.dictionaryURL) ?? PersonalDictionary()
     tones = JSONFileStore.load(ToneRules.self, from: AppPaths.tonesURL) ?? .defaults
     geminiKey = Keychain.read(account: Keychain.geminiAccount) ?? ""
+  }
+
+  /// Qué módulos están encendidos. Finder es el interruptor `finderCut` de la 0.9.0.
+  var modules: ModuleSwitches {
+    get { ModuleSwitches(dictation: moduleDictation, meetings: moduleMeetings, finder: finderCut) }
+    set {
+      if moduleDictation != newValue.dictation { moduleDictation = newValue.dictation }
+      if moduleMeetings != newValue.meetings { moduleMeetings = newValue.meetings }
+      if finderCut != newValue.finder { finderCut = newValue.finder }
+    }
   }
 
   /// Guarda la clave en el Llavero (o la borra si llega vacía). Devuelve false si no se pudo guardar.
