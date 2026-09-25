@@ -72,11 +72,21 @@ enum ScreenCapture {
     return (displays.firstIndex { CGDisplayBounds($0).contains(mouse) } ?? 0) + 1
   }
 
+  /// Píxeles por punto de la pantalla del ratón (2 en Retina): el editor mide los grosores y las letras en puntos.
+  static var scaleUnderMouse: CGFloat {
+    let mouse = NSEvent.mouseLocation
+    return (NSScreen.screens.first { NSMouseInRect(mouse, $0.frame, false) } ?? NSScreen.main)?.backingScaleFactor ?? 2
+  }
+
   /// En PNG y en TIFF, para que la acepten todas las apps.
   static func copyImage(_ shot: Shot) {
+    copyImage(png: shot.png, tiff: NSBitmapImageRep(data: shot.png)?.tiffRepresentation)
+  }
+
+  static func copyImage(png: Data, tiff: Data?) {
     let item = NSPasteboardItem()
-    item.setData(shot.png, forType: .png)
-    if let tiff = NSBitmapImageRep(data: shot.png)?.tiffRepresentation { item.setData(tiff, forType: .tiff) }
+    item.setData(png, forType: .png)
+    if let tiff { item.setData(tiff, forType: .tiff) }
     NSPasteboard.general.clearContents()
     NSPasteboard.general.writeObjects([item])
   }

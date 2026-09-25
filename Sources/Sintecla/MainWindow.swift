@@ -259,8 +259,8 @@ struct StatusBadge: ViewModifier {
   }
 }
 
-/// La ventana principal. Mientras está abierta, Sintecla aparece en el Dock; al cerrarla vuelve a vivir solo en la
-/// barra de menú.
+/// La ventana principal. Mientras está abierta, Sintecla aparece en el Dock; al cerrarla (sin editores de capturas
+/// abiertos) vuelve a vivir solo en la barra de menú.
 @MainActor
 final class MainWindowController: NSObject, NSWindowDelegate {
   let navigation = MainNavigation()
@@ -285,13 +285,13 @@ final class MainWindowController: NSObject, NSWindowDelegate {
       window.setFrameAutosaveName("SinteclaMain")
       self.window = window
     }
-    NSApp.setActivationPolicy(.regular)
+    DockPresence.show(for: self)
     NSApp.activate()
     window?.makeKeyAndOrderFront(nil)
   }
 
   func windowWillClose(_ notification: Notification) {
-    NSApp.setActivationPolicy(.accessory)
+    DockPresence.hide(for: self)
   }
 }
 

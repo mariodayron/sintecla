@@ -26,7 +26,7 @@ struct CapturesPage: View {
         ForEach(CaptureAction.allCases, id: \.self) { action in
           LabeledContent(action.title, value: action.shortcut)
         }
-        Text("⇧⌘3 y ⇧⌘4 copian la captura al portapapeles. ⇧⌘2 copia el texto de una zona o el contenido de un QR; "
+        Text("⇧⌘3 y ⇧⌘4 copian la captura al portapapeles y la abren en el editor para anotarla. ⇧⌘2 copia el texto de una zona o el contenido de un QR; "
              + "⇧⌘1, además, abre una tarjeta para traducirlo o preguntar. Mientras el módulo está encendido, estos "
              + "atajos no llegan a otras apps.")
           .font(.caption).foregroundStyle(.secondary)

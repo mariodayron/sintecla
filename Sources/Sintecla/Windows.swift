@@ -21,6 +21,22 @@ enum WindowFactory {
   }
 }
 
+/// Sintecla sale en el Dock (y con ⌘Tab) mientras tiene abierta la ventana principal o algún editor de capturas.
+@MainActor
+enum DockPresence {
+  private static var owners: Set<ObjectIdentifier> = []
+
+  static func show(for owner: AnyObject) {
+    owners.insert(ObjectIdentifier(owner))
+    NSApp.setActivationPolicy(.regular)
+  }
+
+  static func hide(for owner: AnyObject) {
+    owners.remove(ObjectIdentifier(owner))
+    if owners.isEmpty { NSApp.setActivationPolicy(.accessory) }
+  }
+}
+
 // MARK: - Permisos
 
 struct OnboardingView: View {

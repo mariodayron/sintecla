@@ -20,6 +20,8 @@ final class CaptureController {
                                                 preferred: { [unowned self] in self.settings.translationTarget })
   /// Una captura cada vez: mientras está la cruz de macOS, otro atajo no hace nada.
   private var busy = false
+  /// Los editores abiertos, uno por captura.
+  private var editors: [CaptureEditor] = []
 
   init(settings: AppSettings, appleModel: AppleTextModel?) {
     self.settings = settings
@@ -49,6 +51,7 @@ final class CaptureController {
     case .screen, .area:
       ScreenCapture.copyImage(shot)
       onNotice?(CaptureNotice.copied, Self.imageSymbol)
+      openEditor(shot)
     case .text, .textCard:
       let content = (try? await TextRecognizer.recognize(shot.image)) ?? .nothing
       guard let text = content.copiedText else {
@@ -63,6 +66,14 @@ final class CaptureController {
       }
       if action == .textCard { card.show(text) }
     }
+  }
+
+  private func openEditor(_ shot: ScreenCapture.Shot) {
+    let editor = CaptureEditor(shot: shot, scale: ScreenCapture.scaleUnderMouse)
+    editor.onNotice = { [weak self] text, symbol in self?.onNotice?(text, symbol) }
+    editor.onClose = { [weak self] closed in self?.editors.removeAll { $0 === closed } }
+    editors.append(editor)
+    editor.show()
   }
 
   /// Traductores: Apple y, de respaldo, Gemini. Modelos para preguntar: Gemini y, de respaldo, Apple.
