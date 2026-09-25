@@ -21,6 +21,8 @@ public struct DictationRewriter: Sendable {
   public static let minimumWords = 6
   /// Segundos de espera a Gemini, sin reintentos.
   public static let timeout: TimeInterval = 6
+  /// El tono Prompt reescribe más (imperativo, etiquetas y listas): admite hasta la mitad de palabras nuevas.
+  public static let promptNovelRatio = 0.5
 
   /// Gemini (nil: sin clave o con el interruptor apagado).
   public let cloud: TextModel?
@@ -43,7 +45,9 @@ public struct DictationRewriter: Sendable {
     do {
       let reply = PromptLibrary.unwrap(try await cloud.complete(instructions: instructions, prompt: PromptLibrary.wrap(pre)))
       let output = Self.removingMadeUpGreetings(reply, dictated: pre)
-      guard outputGuard.accepts(input: pre, output: output, allowedNewWords: Set(terms)) else {
+      var check = outputGuard
+      if tone == .prompt { check.maxNovelRatio = max(check.maxNovelRatio, Self.promptNovelRatio) }
+      guard check.accepts(input: pre, output: output, allowedNewWords: Set(terms + ToneFormatter.allowedLabels(for: tone))) else {
         return await fallback(raw, tone: tone)
       }
       return Result(text: local.finish(output, tone: tone), engine: .gemini)

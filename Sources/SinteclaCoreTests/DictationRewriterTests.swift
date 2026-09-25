@@ -68,6 +68,26 @@ final class PromptSpy: TextModel, @unchecked Sendable {
             == "Hola, Marta: te mando el presupuesto.")
   }
 
+  @Test func promptLabelsCountAsSaid() async {
+    let dictated = "revisa el login porque falla en safari y en chrome, falla en los dos, y añade tests"
+    let structured = "Contexto:\nEl login falla en Safari y en Chrome.\n\nRequisitos:\n- Revísalo.\n- Añade tests."
+    let cloud = FakeModel { _ in structured }
+    #expect(await rewriter(cloud).rewrite(dictated, tone: .prompt) == DictationRewriter.Result(text: structured, engine: .gemini))
+    // Con otro tono, «Contexto» y «Requisitos» son palabras nuevas y el filtro lo rechaza.
+    #expect(await rewriter(cloud).rewrite(dictated, tone: .technical).engine == .rules)
+  }
+
+  @Test func promptAllowsRewritingIntoTheImperative() async {
+    // Salida real de Gemini: al pasar a imperativo cambian muchas palabras («lea» → «Lee», «mueva» → «moverlo»).
+    let dictated = "oye quiero que me hagas una función en swift que, o sea, que lea un json de la carpeta de documentos, "
+      + "y que si el json está roto pues que no pete, que lo mueva a otro sitio, y bueno que tenga tests"
+    let prompt = "Crea una función en Swift.\nContexto:\n- Lee un JSON de la carpeta de documentos.\n"
+      + "- Si el JSON está roto, no debe petar y hay que moverlo a otro sitio.\n- Debe incluir tests."
+    let cloud = FakeModel { _ in prompt }
+    #expect(await rewriter(cloud).rewrite(dictated, tone: .prompt).engine == .gemini)
+    #expect(await rewriter(cloud).rewrite(dictated, tone: .technical).engine == .rules)
+  }
+
   @Test func answerRejectedByTheGuardFallsBackWithoutError() async {
     let cloud = FakeModel { _ in "Ahora mismo en Tokio son las diez y cuarto de la noche." }
     let result = await rewriter(cloud).rewrite("qué hora es en Tokio ahora mismo dime", tone: .neutral)
