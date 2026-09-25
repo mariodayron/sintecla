@@ -215,7 +215,8 @@ public struct UsageStats: Codable, Equatable, Sendable {
     return calendar.date(from: DateComponents(year: parts[0], month: parts[1], day: parts[2]))
   }
 
-  private func uses(on day: Date, calendar: Calendar) -> Int {
+  /// Usos de un día (tarjeta de Dictado en Inicio y rachas).
+  public func uses(on day: Date, calendar: Calendar = .current) -> Int {
     days[Self.key(for: day, calendar: calendar)]?.total.uses ?? 0
   }
 
