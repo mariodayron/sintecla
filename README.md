@@ -15,7 +15,7 @@ Inspirada en [Typeless](https://typeless.com); no tiene relación con ella. La a
 | **Reuniones** | Graba tu micro y el audio del Mac, transcribe las dos pistas y te deja el acta en PDF. |
 | **Aprende de ti** | El diccionario aprende las palabras que corriges después de pegar; «Mi estilo» se saca de tu historial. |
 | **Finder** | Cortar y pegar archivos con ⌘X y ⌘V, como en Windows. Si ya usas otra app que cambia ⌘X en Finder, déjalo apagado. |
-| **Capturas** | ⇧⌘3 captura la pantalla y ⇧⌘4 una zona o una ventana: van al portapapeles y se abren en un editor para anotarlas (flecha, texto, rectángulo, lápiz, subrayador, pasos numerados, regla y color bajo el cursor). Cada cambio se vuelve a copiar solo. ⇧⌘2 copia el texto de cualquier zona de la pantalla o el contenido de un QR; ⇧⌘1, además, lo traduce o responde preguntas sobre él. |
+| **Capturas** | ⇧⌘3 captura la pantalla y ⇧⌘4 una zona o una ventana: van al portapapeles y se abren en un editor para anotarlas (flecha, texto, rectángulo, lápiz, subrayador, pasos numerados, pixelar, regla, recortar y color bajo el cursor). Cada cambio se vuelve a copiar solo; ⌘S la guarda en archivo y ⌘P la deja flotando encima de todo. ⇧⌘2 copia el texto de cualquier zona de la pantalla o el contenido de un QR; ⇧⌘1, además, lo traduce o responde preguntas sobre él. |
 | **Y además** | Historial, estadísticas, atajos configurables, modo susurro y tecla ⌥ derecha para teclados sin 🌐. |
 
 Dictado, Reuniones, Finder y Capturas son **módulos**: se encienden y se apagan en la página **Módulos** de la ventana de Sintecla, y uno apagado desaparece del menú y deja de funcionar. Finder y Capturas vienen apagados.
@@ -72,14 +72,14 @@ Mantén la tecla para grabar mientras hablas, o púlsala una vez para manos libr
 
 Las teclas que acompañan a 🌐 se cambian en **Dictado → Atajos e idioma**.
 
-Con el módulo Capturas encendido: `⇧⌘3` pantalla, `⇧⌘4` zona o ventana, `⇧⌘2` texto y `⇧⌘1` texto con traducir y preguntar. En el editor, cada herramienta tiene su tecla (V, A, T, R, P, H, N y M), `Tab` copia el color bajo el cursor y `⌘Z` deshace.
+Con el módulo Capturas encendido: `⇧⌘3` pantalla, `⇧⌘4` zona o ventana, `⇧⌘2` texto y `⇧⌘1` texto con traducir y preguntar. En el editor, cada herramienta tiene su tecla (V, A, T, R, P, H, N, B, M y C), `Tab` copia el color bajo el cursor, `⌘Z` deshace, `⌘S` guarda (`⇧⌘S`, Guardar como…) y `⌘P` fija la captura en pantalla.
 
 ## Privacidad
 
 - **La voz no sale de tu Mac**: la transcripción (el `SpeechTranscriber` de Apple) es local.
 - **El texto del dictado va a Gemini** si pones una clave, para ordenarlo, junto con el nombre de la app (y la web, en Safari), «Mi estilo» y los términos del diccionario. Se apaga en **Dictado → IA → «Ordenar el dictado con Gemini»**; apagado o sin clave, lo ordena el modelo de Apple Intelligence en tu Mac y no sale nada.
 - **Solo va a Gemini**, y solo si pones una clave: el dictado (salvo que lo apagues), Ask Anything, las notas, las actas de reuniones, la traducción cuando falla la de Apple, «Aprender de mi historial» (únicamente al pulsar ese botón) y, en Capturas, el texto de la tarjeta de ⇧⌘1 al pulsar Preguntar o Traducir.
-- **Las capturas no se guardan en disco**: van al portapapeles, y el archivo temporal de macOS se borra al leerlo.
+- **Las capturas solo se guardan en disco si pulsas ⌘S** (en la carpeta que elijas en la página Capturas). Si no, van al portapapeles, y el archivo temporal de macOS se borra al leerlo.
 - **Tus datos** se quedan en tu Mac:
   - `~/Library/Application Support/Sintecla/` guarda el historial (las últimas 500 entradas), el diccionario, los tonos y las estadísticas (solo números).
   - `~/Documents/Sintecla/Reuniones/` guarda las actas.
