@@ -103,6 +103,8 @@ public enum AnnotationWidth: Int, CaseIterable, Sendable {
   public var highlighter: CGFloat { [12, 20, 30][rawValue] }
   public var fontSize: CGFloat { [16, 22, 32][rawValue] }
   public var stepRadius: CGFloat { [11, 14, 19][rawValue] }
+  /// Lado de los cuadros de Pixelar.
+  public var pixelBlock: CGFloat { [8, 12, 18][rawValue] }
 }
 
 public struct AnnotationStyle: Equatable, Sendable {
@@ -119,6 +121,8 @@ public struct AnnotationStyle: Equatable, Sendable {
 public enum AnnotationShape: Equatable, Sendable {
   case arrow(from: CGPoint, to: CGPoint)
   case rectangle(CGRect)
+  /// Zona de la captura tapada con cuadros. El color no le afecta; el grosor da el tamaño de los cuadros.
+  case pixelate(CGRect)
   case pen([CGPoint])
   case highlighter([CGPoint])
   /// `at` es la esquina de arriba a la izquierda del texto.
@@ -131,6 +135,7 @@ public enum AnnotationShape: Equatable, Sendable {
     switch self {
     case .arrow(let from, let to): return .arrow(from: move(from), to: move(to))
     case .rectangle(let rect): return .rectangle(rect.offsetBy(dx: offset.dx, dy: offset.dy))
+    case .pixelate(let rect): return .pixelate(rect.offsetBy(dx: offset.dx, dy: offset.dy))
     case .pen(let points): return .pen(points.map(move))
     case .highlighter(let points): return .highlighter(points.map(move))
     case .text(let text, let origin): return .text(text, at: move(origin))
@@ -143,7 +148,7 @@ public enum AnnotationShape: Equatable, Sendable {
     let minimum = 4 * scale
     switch self {
     case .arrow(let from, let to): return hypot(to.x - from.x, to.y - from.y) < minimum
-    case .rectangle(let rect): return max(abs(rect.width), abs(rect.height)) < minimum
+    case .rectangle(let rect), .pixelate(let rect): return max(abs(rect.width), abs(rect.height)) < minimum
     case .pen(let points), .highlighter(let points):
       let box = AnnotationGeometry.box(points)
       return max(box.width, box.height) < minimum
@@ -328,6 +333,7 @@ enum AnnotationGeometry {
       let head = arrowHead(lineWidth: lineWidth(annotation, scale: scale), scale: scale)
       return box([from, to]).insetBy(dx: -head / 2, dy: -head / 2)
     case .rectangle(let rect): return rect.standardized.insetBy(dx: -half, dy: -half)
+    case .pixelate(let rect): return rect.standardized
     case .pen(let points), .highlighter(let points): return box(points).insetBy(dx: -half, dy: -half)
     case .text(let text, let origin): return textFrame(text, at: origin, style: annotation.style, scale: scale).frame
     case .step(let center):
@@ -345,6 +351,9 @@ enum AnnotationGeometry {
       let outer = rect.standardized.insetBy(dx: -tolerance, dy: -tolerance)
       let inner = rect.standardized.insetBy(dx: tolerance, dy: tolerance)
       return outer.contains(point) && (inner.isNull || !inner.contains(point))
+    case .pixelate(let rect):
+      // Se toca por dentro: es una zona llena.
+      return rect.standardized.insetBy(dx: -2 * scale, dy: -2 * scale).contains(point)
     case .pen(let points), .highlighter(let points):
       guard let first = points.first else { return false }
       if points.count == 1 { return hypot(point.x - first.x, point.y - first.y) <= tolerance }

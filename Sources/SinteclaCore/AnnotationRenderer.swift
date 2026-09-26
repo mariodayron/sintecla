@@ -5,10 +5,20 @@ import ImageIO
 
 /// Dibuja las anotaciones del editor de capturas y exporta la captura anotada a tamaño real (spec «Capturas» §3.3).
 public enum AnnotationRenderer {
-  /// En un contexto en píxeles de la imagen con el origen arriba a la izquierda (y hacia abajo). `hiding`: la que se
-  /// está escribiendo, que dibuja el campo de texto.
-  public static func draw(_ document: AnnotationDocument, in context: CGContext, hiding hidden: Int? = nil) {
-    for annotation in document.annotations where annotation.id != hidden {
+  /// En un contexto en píxeles de la imagen con el origen arriba a la izquierda (y hacia abajo). `image`: la captura,
+  /// para pixelar (sin ella, las zonas pixeladas no se dibujan). `hiding`: la que se está escribiendo, que dibuja el
+  /// campo de texto.
+  public static func draw(_ document: AnnotationDocument, image: CGImage? = nil, in context: CGContext,
+                          hiding hidden: Int? = nil) {
+    let shown = document.annotations.filter { $0.id != hidden }
+    // Lo pixelado tapa solo la captura: va debajo de todas las anotaciones, se crearan antes o después.
+    if let image {
+      for annotation in shown {
+        guard case .pixelate(let rect) = annotation.shape else { continue }
+        pixelate(rect, block: annotation.style.width.pixelBlock * document.scale, image: image, in: context)
+      }
+    }
+    for annotation in shown {
       draw(annotation, number: document.stepNumber(of: annotation.id), scale: document.scale, in: context)
     }
   }
@@ -28,6 +38,8 @@ public enum AnnotationRenderer {
       drawArrow(from: from, to: to, width: width, scale: scale, in: context)
     case .rectangle(let rect):
       context.stroke(rect.standardized)
+    case .pixelate:
+      break  // lo dibuja draw(_:image:in:hiding:), que tiene la captura
     case .pen(let points):
       stroke(points, in: context)
     case .highlighter(let points):
@@ -66,7 +78,7 @@ public enum AnnotationRenderer {
     context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
     context.translateBy(x: 0, y: CGFloat(height))
     context.scaleBy(x: 1, y: -1)
-    draw(document, in: context)
+    draw(document, image: image, in: context)
     return context.makeImage()
   }
 
@@ -75,6 +87,26 @@ public enum AnnotationRenderer {
     guard let destination = CGImageDestinationCreateWithData(data, "public.png" as CFString, 1, nil) else { return nil }
     CGImageDestinationAddImage(destination, image, nil)
     return CGImageDestinationFinalize(destination) ? data as Data : nil
+  }
+
+  /// Cada cuadro, del color medio de esa parte de la captura: la zona se reduce y se vuelve a ampliar sin suavizar.
+  static func pixelate(_ rect: CGRect, block: CGFloat, image: CGImage, in context: CGContext) {
+    let area = rect.standardized.integral.intersection(CGRect(x: 0, y: 0, width: image.width, height: image.height))
+    guard !area.isEmpty, block > 0, let part = image.cropping(to: area) else { return }
+    let columns = max(1, Int((area.width / block).rounded(.up))), rows = max(1, Int((area.height / block).rounded(.up)))
+    let space = image.colorSpace.flatMap { $0.model == .rgb ? $0 : nil } ?? CGColorSpace(name: CGColorSpace.sRGB)!
+    guard let small = CGContext(data: nil, width: columns, height: rows, bitsPerComponent: 8, bytesPerRow: 0, space: space,
+                                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return }
+    small.interpolationQuality = .high
+    small.draw(part, in: CGRect(x: 0, y: 0, width: columns, height: rows))
+    guard let blocks = small.makeImage() else { return }
+    context.saveGState()
+    defer { context.restoreGState() }
+    context.interpolationQuality = .none
+    // El contexto va de arriba abajo y una imagen se dibuja de abajo arriba: se le da la vuelta solo a ella.
+    context.translateBy(x: area.minX, y: area.maxY)
+    context.scaleBy(x: 1, y: -1)
+    context.draw(blocks, in: CGRect(x: 0, y: 0, width: area.width, height: area.height))
   }
 
   private static func stroke(_ points: [CGPoint], in context: CGContext) {
