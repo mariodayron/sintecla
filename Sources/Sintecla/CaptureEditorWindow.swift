@@ -164,7 +164,7 @@ final class CaptureEditor: NSObject, NSWindowDelegate {
     ])
     window.contentView = content
 
-    model.onChange = { [weak self] in self?.scheduleCopy() }
+    model.onChange = { [weak self] in self?.changed() }
     canvas.onCopy = { [weak self] in self?.copyNow() }
     canvas.onCopyColor = { [weak self] hex in
       ScreenCapture.copyText(hex)
@@ -215,6 +215,12 @@ final class CaptureEditor: NSObject, NSWindowDelegate {
   }
 
   // MARK: - Portapapeles
+
+  /// Cada cambio: el título (un recorte cambia el tamaño) y la copia automática.
+  private func changed() {
+    window.title = "Captura · \(model.pixelSize)"
+    scheduleCopy()
+  }
 
   /// Medio segundo después del último cambio, la captura anotada vuelve al portapapeles, sin aviso.
   private func scheduleCopy() {

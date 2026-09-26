@@ -119,7 +119,9 @@ import Testing
   }
 
   @Test func toolsKeysAndColors() {
-    #expect(AnnotationTool.allCases.map(\.key).joined() == "VATRPHNM")
+    #expect(AnnotationTool.allCases.map(\.key).joined() == "VATRPHNBMC")
+    #expect(AnnotationTool.tool(forKey: "b") == .pixelate)
+    #expect(AnnotationTool.tool(forKey: "C") == .crop)
     #expect(AnnotationTool.tool(forKey: "a") == .arrow)
     #expect(AnnotationTool.tool(forKey: "M") == .ruler)
     #expect(AnnotationTool.tool(forKey: "x") == nil)

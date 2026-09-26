@@ -4,7 +4,7 @@ import Foundation
 
 /// Herramientas del editor de capturas (spec «Capturas» §3.1), en el orden de la barra.
 public enum AnnotationTool: String, CaseIterable, Sendable {
-  case select, arrow, text, rectangle, pen, highlighter, step, ruler
+  case select, arrow, text, rectangle, pen, highlighter, step, pixelate, ruler, crop
 
   /// La tecla que la elige en el editor.
   public var key: String {
@@ -16,7 +16,9 @@ public enum AnnotationTool: String, CaseIterable, Sendable {
     case .pen: "P"
     case .highlighter: "H"
     case .step: "N"
+    case .pixelate: "B"
     case .ruler: "M"
+    case .crop: "C"
     }
   }
 
@@ -29,7 +31,9 @@ public enum AnnotationTool: String, CaseIterable, Sendable {
     case .pen: "Lápiz"
     case .highlighter: "Subrayador"
     case .step: "Pasos"
+    case .pixelate: "Pixelar"
     case .ruler: "Regla"
+    case .crop: "Recortar"
     }
   }
 
@@ -42,7 +46,9 @@ public enum AnnotationTool: String, CaseIterable, Sendable {
     case .pen: "pencil.tip"
     case .highlighter: "highlighter"
     case .step: "1.circle"
+    case .pixelate: "checkerboard.rectangle"
     case .ruler: "ruler"
+    case .crop: "crop"
     }
   }
 
