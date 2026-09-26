@@ -11,6 +11,10 @@ public enum CaptureNotice {
     return "Texto copiado · \(words) \(words == 1 ? "palabra" : "palabras")"
   }
 
+  /// ⌘S en el editor: el nombre de la carpeta donde se guardó.
+  public static func saved(_ folder: String) -> String { "Guardada en \(folder)" }
+  public static let saveFailed = "No se pudo guardar"
+
   /// Tab en el editor: el color bajo el cursor.
   public static func color(_ hex: String) -> String { "Color copiado: \(hex)" }
 
