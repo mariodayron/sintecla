@@ -3,12 +3,13 @@ import SinteclaCore
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// La barra del editor (spec «Capturas» §3.1 y «Editor de capturas completo» §6): Copiar y Guardar, las herramientas,
-/// el estilo y, a la derecha, el color bajo el cursor, el tamaño y el zoom.
+/// La barra del editor (spec «Capturas» §3.1 y «Editor de capturas completo» §6): Copiar, Guardar y Fijar, las
+/// herramientas, el estilo y, a la derecha, el color bajo el cursor, el tamaño y el zoom.
 struct CaptureEditorBar: View {
   let model: CaptureEditorModel
   var onCopy: () -> Void
   var onSave: () -> Void
+  var onPin: () -> Void
   var onZoom: (CaptureZoom) -> Void
 
   var body: some View {
@@ -16,6 +17,7 @@ struct CaptureEditorBar: View {
       HStack(spacing: 4) {
         actionButton("doc.on.doc", help: "Copiar (⌘C). Cada cambio ya se copia solo", action: onCopy)
         actionButton("square.and.arrow.down", help: "Guardar (⌘S). ⇧⌘S: Guardar como…", action: onSave)
+        actionButton("pin", help: "Fijar en pantalla (⌘P)", action: onPin)
       }
       HStack(spacing: 2) {
         ForEach(AnnotationTool.allCases, id: \.self) { tool in
@@ -134,6 +136,8 @@ final class CaptureEditor: NSObject, NSWindowDelegate {
   private var pendingCopy: Task<Void, Never>?
   /// Cuenta las copias: si una copia termina después de otra más nueva, no pisa el portapapeles.
   private var copies = 0
+  /// La captura fijada en pantalla; mientras está, el editor se oculta.
+  private var pinned: PinnedCapture?
 
   init(shot: ScreenCapture.Shot, scale: CGFloat, folder: @escaping () -> URL) {
     model = CaptureEditorModel(image: shot.image, scale: scale)
@@ -147,7 +151,7 @@ final class CaptureEditor: NSObject, NSWindowDelegate {
     window.hidesOnDeactivate = false
     window.title = "Captura · \(model.pixelSize)"
     window.isReleasedWhenClosed = false
-    window.minSize = NSSize(width: 880, height: 320)
+    window.minSize = NSSize(width: 1000, height: 320)
     window.delegate = self
 
     scrollView.contentView = CenteringClipView()
@@ -161,6 +165,7 @@ final class CaptureEditor: NSObject, NSWindowDelegate {
     scrollView.backgroundColor = .underPageBackgroundColor
     let bar = NSHostingView(rootView: CaptureEditorBar(model: model, onCopy: { [weak self] in self?.copyNow() },
                                                       onSave: { [weak self] in self?.save(asking: false) },
+                                                      onPin: { [weak self] in self?.pin() },
                                                       onZoom: { [weak self] in self?.zoom($0) }))
     let content = NSView()
     for view in [bar, scrollView] as [NSView] {
@@ -182,6 +187,7 @@ final class CaptureEditor: NSObject, NSWindowDelegate {
     model.onChange = { [weak self] in self?.changed() }
     canvas.onCopy = { [weak self] in self?.copyNow() }
     canvas.onSave = { [weak self] asking in self?.save(asking: asking) }
+    canvas.onPin = { [weak self] in self?.pin() }
     canvas.onCopyColor = { [weak self] hex in
       ScreenCapture.copyText(hex)
       self?.onNotice?(CaptureNotice.color(hex), "eyedropper")
@@ -265,6 +271,34 @@ final class CaptureEditor: NSObject, NSWindowDelegate {
       ScreenCapture.copyImage(png: data.png, tiff: data.tiff)
       if notify { onNotice?(CaptureNotice.copied, CaptureController.imageSymbol) }
     }
+  }
+
+  // MARK: - Fijar
+
+  /// ⌘P y Fijar: la captura, tal como está, flota donde estaba el lienzo y el editor se oculta.
+  private func pin() {
+    guard pinned == nil, let image = AnnotationRenderer.render(model.image, model.document) else { return }
+    let onScreen = window.convertToScreen(canvas.convert(canvas.bounds, to: nil))
+    let capture = PinnedCapture(image: image, scale: model.document.scale, frame: onScreen)
+    capture.onReopen = { [weak self] in self?.unpin() }
+    capture.onClose = { [weak self] in
+      self?.unpin(reopen: false)
+      self?.window.close()
+    }
+    pinned = capture
+    window.orderOut(nil)
+    DockPresence.hide(for: self)  // mientras solo haya capturas fijadas, Sintecla no sale en el Dock
+    capture.show()
+  }
+
+  /// Doble clic en la captura fijada: vuelve el editor, como estaba.
+  private func unpin(reopen: Bool = true) {
+    pinned?.close()
+    pinned = nil
+    guard reopen else { return }
+    DockPresence.show(for: self)
+    window.orderFrontRegardless()
+    window.makeKey()
   }
 
   // MARK: - Guardar

@@ -141,6 +141,8 @@ final class CaptureCanvasView: NSView, NSTextFieldDelegate {
   var onCopy: (() -> Void)?
   /// ⌘S (false) y ⇧⌘S (true, pregunta dónde).
   var onSave: ((Bool) -> Void)?
+  /// ⌘P: fijar la captura en pantalla.
+  var onPin: (() -> Void)?
   var onCopyColor: ((String) -> Void)?
   var onZoom: ((CaptureZoom) -> Void)?
   var onClose: (() -> Void)?
@@ -471,6 +473,7 @@ final class CaptureCanvasView: NSView, NSTextFieldDelegate {
     case "z": model.edit { shift ? $0.redo() : $0.undo() }
     case "c": onCopy?()
     case "s": onSave?(shift)
+    case "p": onPin?()
     case "0": onZoom?(.fit)
     case "1": onZoom?(.actual)
     case "+", "=": onZoom?(.zoomIn)
