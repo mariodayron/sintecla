@@ -174,9 +174,17 @@ public struct AnnotationDocument: Equatable, Sendable {
   public private(set) var annotations: [Annotation] = []
   /// La anotación elegida con Seleccionar. Elegir no es un cambio: no se deshace.
   public private(set) var selection: Int?
+  /// El recorte, en píxeles de la captura entera; nil es la captura entera. La captura no se toca: deshacer lo quita.
+  public private(set) var crop: CGRect?
   private var nextID = 1
-  private var undoStack: [[Annotation]] = []
-  private var redoStack: [[Annotation]] = []
+  /// Lo que se deshace y se rehace: las anotaciones y el recorte, juntos.
+  private struct Snapshot: Equatable, Sendable {
+    var annotations: [Annotation]
+    var crop: CGRect?
+  }
+  private var undoStack: [Snapshot] = []
+  private var redoStack: [Snapshot] = []
+  private var snapshot: Snapshot { Snapshot(annotations: annotations, crop: crop) }
 
   public init(scale: CGFloat = 1) {
     self.scale = scale
@@ -226,17 +234,37 @@ public struct AnnotationDocument: Equatable, Sendable {
     }
   }
 
+  /// Recorta a `rect` (se ajusta a la captura, de tamaño `size`). La captura entera o nada quitan el recorte.
+  public mutating func setCrop(_ rect: CGRect?, in size: CGSize) {
+    let full = CGRect(origin: .zero, size: size)
+    let clamped = rect.map { $0.standardized.integral.intersection(full) }
+    let crop = clamped.flatMap { $0.isEmpty || $0 == full ? nil : $0 }
+    guard crop != self.crop else { return }
+    undoStack.append(snapshot)
+    redoStack.removeAll()
+    self.crop = crop
+  }
+
+  /// Lo que se ve de la captura (de tamaño `size`): el recorte o la captura entera.
+  public func visibleRect(in size: CGSize) -> CGRect {
+    crop ?? CGRect(origin: .zero, size: size)
+  }
+
   public mutating func undo() {
     guard let previous = undoStack.popLast() else { return }
-    redoStack.append(annotations)
-    annotations = previous
-    select(selection)
+    redoStack.append(snapshot)
+    restore(previous)
   }
 
   public mutating func redo() {
     guard let next = redoStack.popLast() else { return }
-    undoStack.append(annotations)
-    annotations = next
+    undoStack.append(snapshot)
+    restore(next)
+  }
+
+  private mutating func restore(_ state: Snapshot) {
+    annotations = state.annotations
+    crop = state.crop
     select(selection)
   }
 
@@ -265,7 +293,7 @@ public struct AnnotationDocument: Equatable, Sendable {
   }
 
   private mutating func change(_ body: (inout [Annotation]) -> Void) {
-    undoStack.append(annotations)
+    undoStack.append(snapshot)
     redoStack.removeAll()
     body(&annotations)
   }

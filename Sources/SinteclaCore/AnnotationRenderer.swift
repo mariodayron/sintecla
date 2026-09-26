@@ -69,15 +69,19 @@ public enum AnnotationRenderer {
     }
   }
 
-  /// La captura con sus anotaciones, con los píxeles de la captura y su espacio de color.
+  /// La captura con sus anotaciones, recortada, con los píxeles de la captura y su espacio de color.
   public static func render(_ image: CGImage, _ document: AnnotationDocument) -> CGImage? {
-    let width = image.width, height = image.height
+    let full = CGSize(width: image.width, height: image.height)
+    let area = document.visibleRect(in: full)
     let space = image.colorSpace.flatMap { $0.model == .rgb ? $0 : nil } ?? CGColorSpace(name: CGColorSpace.sRGB)!
-    guard let context = CGContext(data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0,
-                                  space: space, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return nil }
-    context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
-    context.translateBy(x: 0, y: CGFloat(height))
+    guard let context = CGContext(data: nil, width: Int(area.width), height: Int(area.height), bitsPerComponent: 8,
+                                  bytesPerRow: 0, space: space,
+                                  bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return nil }
+    // La captura entera, desplazada para que la zona recortada caiga en el lienzo (este contexto va de abajo arriba).
+    context.draw(image, in: CGRect(x: -area.minX, y: area.maxY - full.height, width: full.width, height: full.height))
+    context.translateBy(x: 0, y: area.height)
     context.scaleBy(x: 1, y: -1)
+    context.translateBy(x: -area.minX, y: -area.minY)
     draw(document, image: image, in: context)
     return context.makeImage()
   }
