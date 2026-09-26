@@ -139,6 +139,8 @@ private struct CropHandle: Equatable {
 final class CaptureCanvasView: NSView, NSTextFieldDelegate {
   let model: CaptureEditorModel
   var onCopy: (() -> Void)?
+  /// ⌘S (false) y ⇧⌘S (true, pregunta dónde).
+  var onSave: ((Bool) -> Void)?
   var onCopyColor: ((String) -> Void)?
   var onZoom: ((CaptureZoom) -> Void)?
   var onClose: (() -> Void)?
@@ -468,6 +470,7 @@ final class CaptureCanvasView: NSView, NSTextFieldDelegate {
     switch event.charactersIgnoringModifiers?.lowercased() {
     case "z": model.edit { shift ? $0.redo() : $0.undo() }
     case "c": onCopy?()
+    case "s": onSave?(shift)
     case "0": onZoom?(.fit)
     case "1": onZoom?(.actual)
     case "+", "=": onZoom?(.zoomIn)

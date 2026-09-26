@@ -1,19 +1,22 @@
 import AppKit
 import SinteclaCore
 import SwiftUI
+import UniformTypeIdentifiers
 
-/// La barra del editor (spec «Capturas» §3.1): Copiar, las herramientas, el estilo y, a la derecha, el color bajo el
-/// cursor, el tamaño y el zoom.
+/// La barra del editor (spec «Capturas» §3.1 y «Editor de capturas completo» §6): Copiar y Guardar, las herramientas,
+/// el estilo y, a la derecha, el color bajo el cursor, el tamaño y el zoom.
 struct CaptureEditorBar: View {
   let model: CaptureEditorModel
   var onCopy: () -> Void
+  var onSave: () -> Void
   var onZoom: (CaptureZoom) -> Void
 
   var body: some View {
     HStack(spacing: 12) {
-      Button(action: onCopy) { Label("Copiar", systemImage: "doc.on.doc") }
-        .buttonStyle(.bordered)
-        .help("Copiar (⌘C). Cada cambio ya se copia solo")
+      HStack(spacing: 4) {
+        actionButton("doc.on.doc", help: "Copiar (⌘C). Cada cambio ya se copia solo", action: onCopy)
+        actionButton("square.and.arrow.down", help: "Guardar (⌘S). ⇧⌘S: Guardar como…", action: onSave)
+      }
       HStack(spacing: 2) {
         ForEach(AnnotationTool.allCases, id: \.self) { tool in
           barButton(symbol: tool.symbol, chosen: model.tool == tool, help: "\(tool.title) (\(tool.key))") {
@@ -67,6 +70,12 @@ struct CaptureEditorBar: View {
     .focusable(false)
   }
 
+  private func actionButton(_ symbol: String, help: String, action: @escaping () -> Void) -> some View {
+    Button(action: action) { Image(systemName: symbol).font(.system(size: 14)).frame(width: 22, height: 20) }
+      .buttonStyle(.bordered)
+      .help(help)
+  }
+
   private func barButton(symbol: String, chosen: Bool, help: String, action: @escaping () -> Void) -> some View {
     barButton(chosen: chosen, help: help, action: action) { Image(systemName: symbol).font(.system(size: 14)) }
   }
@@ -115,6 +124,10 @@ final class CaptureEditor: NSObject, NSWindowDelegate {
 
   private let model: CaptureEditorModel
   private let original: Data
+  /// Cuándo se hizo la captura: da el nombre del archivo.
+  private let captured = Date()
+  /// La carpeta de capturas, de los ajustes.
+  private let folder: () -> URL
   private let window: NSWindow
   private let scrollView = NSScrollView()
   private let canvas: CaptureCanvasView
@@ -122,9 +135,10 @@ final class CaptureEditor: NSObject, NSWindowDelegate {
   /// Cuenta las copias: si una copia termina después de otra más nueva, no pisa el portapapeles.
   private var copies = 0
 
-  init(shot: ScreenCapture.Shot, scale: CGFloat) {
+  init(shot: ScreenCapture.Shot, scale: CGFloat, folder: @escaping () -> URL) {
     model = CaptureEditorModel(image: shot.image, scale: scale)
     original = shot.png
+    self.folder = folder
     canvas = CaptureCanvasView(model: model)
     window = CaptureEditorPanel(contentRect: NSRect(x: 0, y: 0, width: 800, height: 600),
                                 styleMask: [.titled, .closable, .miniaturizable, .resizable, .nonactivatingPanel],
@@ -146,6 +160,7 @@ final class CaptureEditor: NSObject, NSWindowDelegate {
     scrollView.maxMagnification = 16
     scrollView.backgroundColor = .underPageBackgroundColor
     let bar = NSHostingView(rootView: CaptureEditorBar(model: model, onCopy: { [weak self] in self?.copyNow() },
+                                                      onSave: { [weak self] in self?.save(asking: false) },
                                                       onZoom: { [weak self] in self?.zoom($0) }))
     let content = NSView()
     for view in [bar, scrollView] as [NSView] {
@@ -166,6 +181,7 @@ final class CaptureEditor: NSObject, NSWindowDelegate {
 
     model.onChange = { [weak self] in self?.changed() }
     canvas.onCopy = { [weak self] in self?.copyNow() }
+    canvas.onSave = { [weak self] asking in self?.save(asking: asking) }
     canvas.onCopyColor = { [weak self] hex in
       ScreenCapture.copyText(hex)
       self?.onNotice?(CaptureNotice.color(hex), "eyedropper")
@@ -248,6 +264,40 @@ final class CaptureEditor: NSObject, NSWindowDelegate {
       guard number == copies, let data else { return }
       ScreenCapture.copyImage(png: data.png, tiff: data.tiff)
       if notify { onNotice?(CaptureNotice.copied, CaptureController.imageSymbol) }
+    }
+  }
+
+  // MARK: - Guardar
+
+  /// ⌘S: al momento, en la carpeta de capturas. ⇧⌘S: la ventana de guardar de macOS, con el nombre ya puesto.
+  private func save(asking: Bool) {
+    let folder = folder()
+    let url = CaptureFiles.freeURL(in: folder, for: captured)
+    guard asking else {
+      write(to: url)
+      return
+    }
+    let panel = NSSavePanel()
+    panel.nameFieldStringValue = url.lastPathComponent
+    panel.directoryURL = folder
+    panel.allowedContentTypes = [.png]
+    panel.beginSheetModal(for: window) { [weak self] response in
+      guard response == .OK, let chosen = panel.url else { return }
+      self?.write(to: chosen)
+    }
+  }
+
+  /// La PNG de lo que se ve (anotada y recortada), fuera del hilo principal. La pastilla dice dónde quedó.
+  private func write(to url: URL) {
+    let image = model.image, document = model.document, original = original
+    Task {
+      let png = await Task.detached(priority: .userInitiated) { Self.export(image, document, original: original)?.png }.value
+      guard let png, (try? png.write(to: url, options: .atomic)) != nil else {
+        onNotice?(CaptureNotice.saveFailed, "exclamationmark.triangle")
+        return
+      }
+      onNotice?(CaptureNotice.saved(FileManager.default.displayName(atPath: url.deletingLastPathComponent().path)),
+                "square.and.arrow.down")
     }
   }
 

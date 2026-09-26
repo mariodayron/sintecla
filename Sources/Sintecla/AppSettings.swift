@@ -34,6 +34,8 @@ final class AppSettings {
   var moduleMeetings: Bool { didSet { defaults.set(moduleMeetings, forKey: "moduleMeetings") } }
   /// Módulo Capturas (spec «Capturas»), apagado por defecto.
   var moduleCaptures: Bool { didSet { defaults.set(moduleCaptures, forKey: "moduleCaptures") } }
+  /// Dónde guarda ⌘S las capturas (spec «Editor de capturas completo» §4). De fábrica, el Escritorio.
+  var captureFolder: String { didSet { defaults.set(captureFolder, forKey: "captureFolder") } }
   var dictionary: PersonalDictionary { didSet { try? JSONFileStore.save(dictionary, to: AppPaths.dictionaryURL) } }
   var tones: ToneRules { didSet { try? JSONFileStore.save(tones, to: AppPaths.tonesURL) } }
   /// Vacía si no hay clave. Se cambia con `setGeminiKey(_:)`.
@@ -48,6 +50,7 @@ final class AppSettings {
       "learnCorrections": true,
       "saveMeetingAudio": true, "meetingNoticeShown": false,
       "finderCut": false, "moduleDictation": true, "moduleMeetings": true, "moduleCaptures": false,
+      "captureFolder": Self.desktop,
     ])
     language = defaults.string(forKey: "language") ?? "es_ES"
     whisperMode = defaults.bool(forKey: "whisperMode")
@@ -66,10 +69,16 @@ final class AppSettings {
     moduleDictation = defaults.bool(forKey: "moduleDictation")
     moduleMeetings = defaults.bool(forKey: "moduleMeetings")
     moduleCaptures = defaults.bool(forKey: "moduleCaptures")
+    captureFolder = defaults.string(forKey: "captureFolder") ?? Self.desktop
     dictionary = JSONFileStore.load(PersonalDictionary.self, from: AppPaths.dictionaryURL) ?? PersonalDictionary()
     tones = JSONFileStore.load(ToneRules.self, from: AppPaths.tonesURL) ?? .defaults
     geminiKey = Keychain.read(account: Keychain.geminiAccount) ?? ""
   }
+
+  static let desktop = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first?.path
+    ?? NSHomeDirectory() + "/Desktop"
+
+  var captureFolderURL: URL { URL(fileURLWithPath: captureFolder, isDirectory: true) }
 
   /// Qué módulos están encendidos. Finder es el interruptor `finderCut` de la 0.9.0.
   var modules: ModuleSwitches {

@@ -69,7 +69,8 @@ final class CaptureController {
   }
 
   private func openEditor(_ shot: ScreenCapture.Shot) {
-    let editor = CaptureEditor(shot: shot, scale: ScreenCapture.scaleUnderMouse)
+    let editor = CaptureEditor(shot: shot, scale: ScreenCapture.scaleUnderMouse,
+                               folder: { [settings] in settings.captureFolderURL })
     editor.onNotice = { [weak self] text, symbol in self?.onNotice?(text, symbol) }
     editor.onClose = { [weak self] closed in self?.editors.removeAll { $0 === closed } }
     editors.append(editor)

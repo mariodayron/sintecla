@@ -3,6 +3,7 @@ import SwiftUI
 
 /// Capturas → Capturas (spec «Capturas» §2.1 y §2.2): el permiso, los atajos y el aviso si macOS aún usa ⇧⌘3 o ⇧⌘4.
 struct CapturesPage: View {
+  @Bindable var settings: AppSettings
   @State private var permission = ScreenCapture.hasPermission
   @State private var macOSShortcuts = ScreenCapture.macOSShortcutsActive
   private let timer = Timer.publish(every: 2, on: .main, in: .common).autoconnect()
@@ -31,6 +32,14 @@ struct CapturesPage: View {
              + "atajos no llegan a otras apps.")
           .font(.caption).foregroundStyle(.secondary)
       }
+      Section("Carpeta de las capturas") {
+        LabeledContent("⌘S guarda en") {
+          Text(FileManager.default.displayName(atPath: settings.captureFolder))
+        }
+        Button("Elegir carpeta…", action: chooseFolder)
+        Text("En el editor, ⌘S guarda al momento aquí y ⇧⌘S pregunta dónde.")
+          .font(.caption).foregroundStyle(.secondary)
+      }
       if macOSShortcuts {
         Section {
           Label("macOS también usa ⇧⌘3 o ⇧⌘4: desactívalos en Ajustes → Teclado → Atajos de teclado → Capturas de "
@@ -44,5 +53,16 @@ struct CapturesPage: View {
       permission = ScreenCapture.hasPermission
       macOSShortcuts = ScreenCapture.macOSShortcutsActive
     }
+  }
+
+  private func chooseFolder() {
+    let panel = NSOpenPanel()
+    panel.canChooseDirectories = true
+    panel.canChooseFiles = false
+    panel.canCreateDirectories = true
+    panel.directoryURL = settings.captureFolderURL
+    panel.prompt = "Elegir"
+    guard panel.runModal() == .OK, let url = panel.url else { return }
+    settings.captureFolder = url.path
   }
 }
