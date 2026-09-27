@@ -1,6 +1,6 @@
 # Editor de capturas completo (pixelar, recortar, guardar y fijar) — Diseño
 
-- **Estado:** diseño aprobado por el usuario el 2026-09-26.
+- **Estado:** diseño aprobado por el usuario el 2026-09-26. Entregado en `v0.11.0` (aceptado por el usuario).
 - **Relación:** amplía el editor de `2026-09-25-capturas-design.md` (§3). Quita de sus no-objetivos (§1) difuminar o pixelar, recortar, fijar la captura en pantalla y guardar en archivo.
 - **Versión:** 0.11.0 (build 12), rama `capturas-editor`, un solo plan.
 
