@@ -39,25 +39,66 @@ struct WindowCard: View {
     .opacity(window.isMinimized ? 0.55 : 1)
     .overlay(alignment: .topLeading) {
       if chosen, let onClose, let onMinimize {
-        HStack(spacing: 6) {
-          button("xmark", help: "Cerrar la ventana", action: onClose)
-          button(window.isMinimized ? "arrow.up.left.and.arrow.down.right" : "minus",
-                 help: window.isMinimized ? "Restaurar" : "Minimizar", action: onMinimize)
-          if let onQuit { button("power", help: "Salir de \(window.appName) (⌘Q)", action: onQuit) }
-        }
-        .padding(5)
+        WindowLights(minimized: window.isMinimized, appName: window.appName, onClose: onClose, onMinimize: onMinimize,
+                     onQuit: onQuit)
+          .padding(10)
       }
     }
     .contentShape(.rect)
   }
+}
 
-  private func button(_ symbol: String, help: String, action: @escaping () -> Void) -> some View {
+/// Los botones de la tarjeta, como los semáforos de una ventana de macOS: rojo cierra, amarillo minimiza (o restaura)
+/// y, al lado, ⏻ en gris sale de la app. Los símbolos salen al pasar el ratón por el grupo, como en macOS.
+private struct WindowLights: View {
+  let minimized: Bool
+  let appName: String
+  let onClose: () -> Void
+  let onMinimize: () -> Void
+  let onQuit: (() -> Void)?
+  @State private var hovering = false
+
+  var body: some View {
+    HStack(spacing: 8) {
+      LightButton(color: Color(red: 1, green: 0.37, blue: 0.34), symbol: "xmark", showsSymbol: hovering,
+                  help: "Cerrar la ventana", action: onClose)
+      LightButton(color: Color(red: 1, green: 0.74, blue: 0.18), symbol: minimized ? "arrow.up" : "minus",
+                  showsSymbol: hovering, help: minimized ? "Restaurar" : "Minimizar", action: onMinimize)
+      if let onQuit {
+        LightButton(color: Color(white: 0.62), symbol: "power", showsSymbol: hovering, help: "Salir de \(appName) (⌘Q)",
+                    action: onQuit)
+      }
+    }
+    .onHover { hovering = $0 }
+  }
+}
+
+/// Un semáforo: se ilumina y crece un poco con el ratón encima.
+private struct LightButton: View {
+  let color: Color
+  let symbol: String
+  let showsSymbol: Bool
+  let help: String
+  let action: () -> Void
+  @State private var hovering = false
+
+  var body: some View {
     Button(action: action) {
-      Image(systemName: symbol).font(.system(size: 11, weight: .bold)).frame(width: 24, height: 24)
-        .background(.regularMaterial, in: .circle)
+      Circle().fill(color)
+        .overlay(Circle().strokeBorder(.black.opacity(0.2), lineWidth: 0.5))
+        .overlay {
+          if showsSymbol {
+            Image(systemName: symbol).font(.system(size: 9, weight: .heavy)).foregroundStyle(.black.opacity(0.6))
+          }
+        }
+        .frame(width: 16, height: 16)
+        .brightness(hovering ? 0.12 : 0)
+        .scaleEffect(hovering ? 1.15 : 1)
+        .animation(.easeOut(duration: 0.12), value: hovering)
         .contentShape(.circle)
     }
     .buttonStyle(.plain)
+    .onHover { hovering = $0 }
     .help(help)
   }
 }
