@@ -16,9 +16,10 @@ Inspirada en [Typeless](https://typeless.com); no tiene relación con ella. La a
 | **Aprende de ti** | El diccionario aprende las palabras que corriges después de pegar; «Mi estilo» se saca de tu historial. |
 | **Finder** | Cortar y pegar archivos con ⌘X y ⌘V, como en Windows. Si ya usas otra app que cambia ⌘X en Finder, déjalo apagado. |
 | **Capturas** | ⇧⌘3 captura la pantalla y ⇧⌘4 una zona o una ventana: van al portapapeles y se abren en un editor para anotarlas (flecha, texto, rectángulo, lápiz, subrayador, pasos numerados, pixelar, regla, recortar y color bajo el cursor). Cada cambio se vuelve a copiar solo; ⌘S la guarda en archivo y ⌘P la deja flotando encima de todo. ⇧⌘2 copia el texto de cualquier zona de la pantalla o el contenido de un QR; ⇧⌘1, además, lo traduce o responde preguntas sobre él. |
+| **Alt-Tab** | ⌘Tab cambia de ventana, no de app, como en Windows: un panel con una miniatura de cada ventana del escritorio, por uso reciente (las minimizadas al final). Con ⌘ pulsado, Tab y las flechas eligen; al soltar, salta. Sustituye al ⌘Tab de macOS mientras está encendido. |
 | **Y además** | Historial, estadísticas, atajos configurables, modo susurro y tecla ⌥ derecha para teclados sin 🌐. |
 
-Dictado, Reuniones, Finder y Capturas son **módulos**: se encienden y se apagan en la página **Módulos** de la ventana de Sintecla, y uno apagado desaparece del menú y deja de funcionar. Finder y Capturas vienen apagados.
+Dictado, Reuniones, Finder, Capturas y Alt-Tab son **módulos**: se encienden y se apagan en la página **Módulos** de la ventana de Sintecla, y uno apagado desaparece del menú y deja de funcionar. Finder, Capturas y Alt-Tab vienen apagados.
 
 ## Requisitos
 
@@ -73,6 +74,8 @@ Mantén la tecla para grabar mientras hablas, o púlsala una vez para manos libr
 Las teclas que acompañan a 🌐 se cambian en **Dictado → Atajos e idioma**.
 
 Con el módulo Capturas encendido: `⇧⌘3` pantalla, `⇧⌘4` zona o ventana, `⇧⌘2` texto y `⇧⌘1` texto con traducir y preguntar. En el editor, cada herramienta tiene su tecla (V, A, T, R, P, H, N, B, M y C), `Tab` copia el color bajo el cursor, `⌘Z` deshace, `⌘S` guarda (`⇧⌘S`, Guardar como…) y `⌘P` fija la captura en pantalla.
+
+Con el módulo Alt-Tab encendido: `⌘Tab` abre el selector de ventanas (`⇧⌘Tab`, hacia atrás); con `⌘` pulsado, `Tab`, `⇧Tab` y las flechas mueven la marca, `Esc` cierra y al soltar `⌘` salta a la ventana marcada.
 
 ## Privacidad
 
