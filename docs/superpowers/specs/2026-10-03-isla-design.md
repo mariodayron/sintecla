@@ -90,7 +90,8 @@ En blanco y negro, como la pastilla de ahora; los textos son los mismos que en l
 ### 3.6 Sin muesca (tapa cerrada)
 
 - **Isla virtual:** arriba en el centro de la pantalla principal, colgando de la barra de menús, con una muesca imaginaria de 180 puntos de ancho y el alto de la barra.
-- **Solo lo de Sintecla:** baja al dictar, en reuniones y con los avisos, igual que con muesca y sin burbuja. Sin nada que enseñar, no se ve.
+- **Solo lo de Sintecla:** baja al dictar, en reuniones y con los avisos, sin burbuja. Sin nada que enseñar, no se ve.
+- **En una fila centrada:** sin cámara en medio, el icono, el texto y la onda (o el cronómetro) van juntos en el centro, y la isla baja solo 14 puntos por debajo de la barra de menús.
 - **Sin música** (lo eligió el usuario). La pausa al dictar sigue funcionando.
 
 ## 4. La música por dentro
