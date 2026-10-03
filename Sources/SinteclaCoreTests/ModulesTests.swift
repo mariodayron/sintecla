@@ -4,7 +4,7 @@ import Testing
 
 @Suite struct ModulesTests {
   let allOn = ModuleSwitches(dictation: true, meetings: true, finder: true, captures: true, altTab: true, dock: true,
-                             island: true)
+                             island: true, remote: true)
 
   @Test func eachPageBelongsToItsModule() {
     #expect(Module.dictation.pages == [.history, .stats, .dictionary, .tones, .ai, .hotkeys])
@@ -14,6 +14,7 @@ import Testing
     #expect(Module.altTab.pages == [.altTab])
     #expect(Module.dock.pages == [.dock])
     #expect(Module.island.pages == [.island])
+    #expect(Module.remote.pages == [.remote])
     for module in Module.allCases {
       #expect(module.pages.allSatisfy { $0.module == module })
     }
@@ -21,8 +22,9 @@ import Testing
   }
 
   @Test func namesInSpanish() {
-    #expect(Module.allCases.map(\.name) == ["Dictado", "Reuniones", "Finder", "Capturas", "Alt-Tab", "Dock", "Isla"])
+    #expect(Module.allCases.map(\.name) == ["Dictado", "Reuniones", "Finder", "Capturas", "Alt-Tab", "Dock", "Isla", "Mando"])
     #expect(ModulePage.island.title == "Isla")
+    #expect(ModulePage.remote.title == "Mando")
     #expect(ModulePage.dock.title == "Dock")
     #expect(ModulePage.altTab.title == "Alt-Tab")
     #expect(ModulePage.captures.title == "Capturas")
@@ -31,7 +33,7 @@ import Testing
   }
 
   @Test func enabledModulesKeepTheirOrder() {
-    #expect(allOn.enabled == [.dictation, .meetings, .finder, .captures, .altTab, .dock, .island])
+    #expect(allOn.enabled == [.dictation, .meetings, .finder, .captures, .altTab, .dock, .island, .remote])
     #expect(ModuleSwitches(dictation: false, meetings: true, finder: true).enabled == [.meetings, .finder])
     #expect(ModuleSwitches(dictation: false, meetings: false, finder: false).enabled == [])
   }
@@ -49,6 +51,8 @@ import Testing
     #expect(!switches.dock)
     switches[.island] = false
     #expect(!switches.island)
+    switches[.remote] = false
+    #expect(!switches.remote)
   }
 
   @Test func capturesIsOffUnlessSaid() {
@@ -56,6 +60,8 @@ import Testing
     #expect(!ModuleSwitches(dictation: true, meetings: true, finder: true, captures: true).altTab)
     #expect(!ModuleSwitches(dictation: true, meetings: true, finder: true, captures: true, altTab: true).dock)
     #expect(!ModuleSwitches(dictation: true, meetings: true, finder: true, captures: true, altTab: true, dock: true).island)
+    #expect(!ModuleSwitches(dictation: true, meetings: true, finder: true, captures: true, altTab: true, dock: true,
+                            island: true).remote)
   }
 
   @Test func pageOfATurnedOffModuleGoesHome() {

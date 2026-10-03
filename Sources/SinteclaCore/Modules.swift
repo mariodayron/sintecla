@@ -2,7 +2,7 @@ import Foundation
 
 /// Los módulos de Sintecla (spec «Módulos y batería» §2). Cada uno se enciende o se apaga en la página Módulos.
 public enum Module: String, CaseIterable, Sendable {
-  case dictation, meetings, finder, captures, altTab, dock, island
+  case dictation, meetings, finder, captures, altTab, dock, island, remote
 
   public var name: String {
     switch self {
@@ -13,6 +13,7 @@ public enum Module: String, CaseIterable, Sendable {
     case .altTab: "Alt-Tab"
     case .dock: "Dock"
     case .island: "Isla"
+    case .remote: "Mando"
     }
   }
 
@@ -25,6 +26,7 @@ public enum Module: String, CaseIterable, Sendable {
     case .altTab: "rectangle.on.rectangle"
     case .dock: "dock.rectangle"
     case .island: "capsule.tophalf.filled"
+    case .remote: "iphone.radiowaves.left.and.right"
     }
   }
 
@@ -42,6 +44,8 @@ public enum Module: String, CaseIterable, Sendable {
       + "Las miniaturas necesitan el permiso de Grabación de pantalla."
     case .island: "La muesca del MacBook cobra vida, como la Dynamic Island: la música que suena y el dictado, las "
       + "reuniones y los avisos de Sintecla. Al dictar, la música se pausa."
+    case .remote: "El móvil como trackpad y mando del Mac: abre en él el enlace del QR, en la misma Wi-Fi, sin instalar "
+      + "nada. Se enciende y se apaga desde la barra de menús."
     }
   }
 
@@ -57,6 +61,7 @@ public enum ModulePage: String, CaseIterable, Hashable, Sendable {
   case altTab
   case dock
   case island
+  case remote
 
   public var module: Module {
     switch self {
@@ -67,6 +72,7 @@ public enum ModulePage: String, CaseIterable, Hashable, Sendable {
     case .altTab: .altTab
     case .dock: .dock
     case .island: .island
+    case .remote: .remote
     }
   }
 
@@ -84,6 +90,7 @@ public enum ModulePage: String, CaseIterable, Hashable, Sendable {
     case .altTab: "Alt-Tab"
     case .dock: "Dock"
     case .island: "Isla"
+    case .remote: "Mando"
     }
   }
 
@@ -101,6 +108,7 @@ public enum ModulePage: String, CaseIterable, Hashable, Sendable {
     case .altTab: "rectangle.on.rectangle"
     case .dock: "dock.rectangle"
     case .island: "capsule.tophalf.filled"
+    case .remote: "iphone.radiowaves.left.and.right"
     }
   }
 }
@@ -114,9 +122,10 @@ public struct ModuleSwitches: Equatable, Sendable {
   public var altTab: Bool
   public var dock: Bool
   public var island: Bool
+  public var remote: Bool
 
   public init(dictation: Bool, meetings: Bool, finder: Bool, captures: Bool = false, altTab: Bool = false,
-              dock: Bool = false, island: Bool = false) {
+              dock: Bool = false, island: Bool = false, remote: Bool = false) {
     self.dictation = dictation
     self.meetings = meetings
     self.finder = finder
@@ -124,6 +133,7 @@ public struct ModuleSwitches: Equatable, Sendable {
     self.altTab = altTab
     self.dock = dock
     self.island = island
+    self.remote = remote
   }
 
   public subscript(module: Module) -> Bool {
@@ -136,6 +146,7 @@ public struct ModuleSwitches: Equatable, Sendable {
       case .altTab: altTab
       case .dock: dock
       case .island: island
+      case .remote: remote
       }
     }
     set {
@@ -147,6 +158,7 @@ public struct ModuleSwitches: Equatable, Sendable {
       case .altTab: altTab = newValue
       case .dock: dock = newValue
       case .island: island = newValue
+      case .remote: remote = newValue
       }
     }
   }

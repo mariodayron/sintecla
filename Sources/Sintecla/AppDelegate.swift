@@ -41,7 +41,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       showSettings: { [weak self] in self?.mainWindow.show(.general) },
       showPermissions: { [weak self] in self?.showOnboarding() },
       settingsChanged: { [weak self] in self?.controller.applySettings() },
-      capture: { [weak self] in self?.controller.runCapture($0) }))
+      capture: { [weak self] in self?.controller.runCapture($0) },
+      showRemote: { [weak self] in self?.mainWindow.show(.page(.remote)) }))
+    RemoteController.shared.configure(settings: settings)
     controller.onRecordingChange = { [weak self] recording in self?.menuBar.setRecording(recording) }
     controller.onShowCaptures = { [weak self] in self?.mainWindow.show(.page(.captures)) }
     LoginItem.set(settings.launchAtLogin)

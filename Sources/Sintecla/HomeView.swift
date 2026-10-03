@@ -82,6 +82,15 @@ struct HomeView: View {
       if NotchScreen.current == nil {
         Label("Sin muesca: solo Sintecla, arriba en el centro", systemImage: "macbook").font(.callout)
       }
+    case .remote:
+      let remote = RemoteController.shared
+      Text(remote.state == .on
+           ? (remote.clients == 0 ? "Encendido · esperando al móvil" : "Encendido · \(remote.clients) conectado")
+           : "El móvil como trackpad").foregroundStyle(.secondary)
+      Button(action: remote.toggle) {
+        Label(remote.isOn ? "Apagar" : "Encender", systemImage: remote.isOn ? "stop.circle.fill" : "power")
+      }
+      .buttonStyle(.glass)
     }
   }
 }

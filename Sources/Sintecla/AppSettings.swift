@@ -40,6 +40,10 @@ final class AppSettings {
   var moduleDock: Bool { didSet { defaults.set(moduleDock, forKey: "moduleDock") } }
   /// Módulo Isla (spec «La isla»), apagado por defecto.
   var moduleIsland: Bool { didSet { defaults.set(moduleIsland, forKey: "moduleIsland") } }
+  /// Módulo Mando (el móvil como trackpad), apagado por defecto.
+  var moduleRemote: Bool { didSet { defaults.set(moduleRemote, forKey: "moduleRemote") } }
+  /// La llave del enlace del Mando: sin ella, el servidor no obedece. Se crea la primera vez.
+  var remoteKey: String { didSet { defaults.set(remoteKey, forKey: "remoteKey") } }
   /// Dónde guarda ⌘S las capturas (spec «Editor de capturas completo» §4). De fábrica, el Escritorio.
   var captureFolder: String { didSet { defaults.set(captureFolder, forKey: "captureFolder") } }
   var dictionary: PersonalDictionary { didSet { try? JSONFileStore.save(dictionary, to: AppPaths.dictionaryURL) } }
@@ -56,7 +60,7 @@ final class AppSettings {
       "learnCorrections": true,
       "saveMeetingAudio": true, "meetingNoticeShown": false,
       "finderCut": false, "moduleDictation": true, "moduleMeetings": true, "moduleCaptures": false,
-      "moduleAltTab": false, "moduleDock": false, "moduleIsland": false,
+      "moduleAltTab": false, "moduleDock": false, "moduleIsland": false, "moduleRemote": false,
       "captureFolder": Self.desktop,
     ])
     language = defaults.string(forKey: "language") ?? "es_ES"
@@ -79,10 +83,13 @@ final class AppSettings {
     moduleAltTab = defaults.bool(forKey: "moduleAltTab")
     moduleDock = defaults.bool(forKey: "moduleDock")
     moduleIsland = defaults.bool(forKey: "moduleIsland")
+    moduleRemote = defaults.bool(forKey: "moduleRemote")
+    remoteKey = defaults.string(forKey: "remoteKey") ?? ""
     captureFolder = defaults.string(forKey: "captureFolder") ?? Self.desktop
     dictionary = JSONFileStore.load(PersonalDictionary.self, from: AppPaths.dictionaryURL) ?? PersonalDictionary()
     tones = JSONFileStore.load(ToneRules.self, from: AppPaths.tonesURL) ?? .defaults
     geminiKey = Keychain.read(account: Keychain.geminiAccount) ?? ""
+    if remoteKey.isEmpty { remoteKey = Remote.newKey() }
   }
 
   static let desktop = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first?.path
@@ -94,7 +101,7 @@ final class AppSettings {
   var modules: ModuleSwitches {
     get {
       ModuleSwitches(dictation: moduleDictation, meetings: moduleMeetings, finder: finderCut, captures: moduleCaptures,
-                     altTab: moduleAltTab, dock: moduleDock, island: moduleIsland)
+                     altTab: moduleAltTab, dock: moduleDock, island: moduleIsland, remote: moduleRemote)
     }
     set {
       if moduleDictation != newValue.dictation { moduleDictation = newValue.dictation }
@@ -104,6 +111,7 @@ final class AppSettings {
       if moduleAltTab != newValue.altTab { moduleAltTab = newValue.altTab }
       if moduleDock != newValue.dock { moduleDock = newValue.dock }
       if moduleIsland != newValue.island { moduleIsland = newValue.island }
+      if moduleRemote != newValue.remote { moduleRemote = newValue.remote }
     }
   }
 

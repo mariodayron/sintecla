@@ -16,6 +16,7 @@ import SinteclaCore
 ///   Sintecla --meeting-pdf transcripcion.jsonl acta.pdf  (la misma acta en PDF)
 ///   Sintecla --meeting-record segundos carpeta           (reunión real con el grabador; lanzar con `open`)
 ///   Sintecla --make-icon carpeta.iconset                 (PNG del icono; lo usa scripts/make-icon.sh)
+///   Sintecla --remote-serve segundos llave               (el servidor del Mando con esa llave, para probarlo)
 enum DebugCommands {
   static let usage = """
     Uso: Sintecla --transcribe audio.aiff [es_ES|en_US] | --translate "texto" | --ask "orden" ["selección"]
@@ -23,6 +24,7 @@ enum DebugCommands {
                   | --notes transcripcion.txt | --gemini-check | --ask-bench | --mic-test [segundos]
                   | --meeting-summary transcripcion.jsonl | --meeting-pdf transcripcion.jsonl acta.pdf
                   | --meeting-record segundos carpeta | --make-icon carpeta.iconset
+                  | --remote-serve segundos llave
     """
 
   /// nil = arrancar la app normal. Una opción "--" desconocida o incompleta muestra el uso (nunca abre la app).
@@ -45,6 +47,7 @@ enum DebugCommands {
     case "--meeting-pdf" where rest.count >= 2: return { await meetingPDF(path: first, output: rest[1]) }
     case "--meeting-record" where rest.count >= 2: return { await meetingRecord(seconds: Double(first) ?? 30, folder: rest[1]) }
     case "--make-icon" where !rest.isEmpty: return { makeIcon(folder: first) }
+    case "--remote-serve" where rest.count == 2: return { await remoteServe(seconds: Int(first) ?? 30, key: rest[1]) }
     default: return { usage }
     }
   }
@@ -289,6 +292,28 @@ enum DebugCommands {
   }
 
   /// `Sintecla --make-icon carpeta.iconset`: los PNG del icono que junta `iconutil` (scripts/make-icon.sh).
+  /// El servidor del Mando unos segundos, con las órdenes de verdad: para probarlo con `curl` desde otro terminal.
+  @MainActor static func remoteServe(seconds: Int, key: String) async -> String {
+    let server = RemoteServer()
+    let control = RemoteControl()
+    var log: [String] = []
+    server.key = { key }
+    server.onAction = { action in
+      log.append("\(action)")
+      control.perform(action)
+    }
+    server.status = { ["battery": 0, "charging": false] }
+    server.nowPlaying = { ["playing": false] }
+    let started: String = await withCheckedContinuation { continuation in
+      server.start(port: Remote.defaultPort) { error in
+        continuation.resume(returning: error.map { "no arrancó: \($0)" } ?? "escuchando en \(Remote.defaultPort)")
+      }
+    }
+    try? await Task.sleep(for: .seconds(seconds))
+    server.stop()
+    return ([started] + log).joined(separator: "\n")
+  }
+
   static func makeIcon(folder: String) -> String {
     let url = URL(fileURLWithPath: folder)
     do {

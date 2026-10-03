@@ -116,6 +116,7 @@ struct MainView: View {
     case .altTab: AltTabPage()
     case .dock: DockPage()
     case .island: IslandPage()
+    case .remote: RemotePage(settings: settings)
     }
   }
 }

@@ -35,6 +35,7 @@ struct MenuActions {
   var showPermissions: () -> Void
   var settingsChanged: () -> Void
   var capture: (CaptureAction) -> Void
+  var showRemote: () -> Void
 }
 
 /// Icono de la barra de menú y su menú, por bloques: uno por módulo encendido (spec «Módulos y batería» §3.2).
@@ -75,6 +76,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     if modules.dictation { addDictation(to: menu) }
     if modules.meetings { addMeetings(to: menu) }
     if modules.captures { addCaptures(to: menu) }
+    if modules.remote { addRemote(to: menu) }
 
     menu.addItem(.separator())
     menu.addItem(ClosureMenuItem("Abrir Sintecla…", key: "o", handler: actions.showMain))
@@ -116,6 +118,23 @@ final class MenuBarController: NSObject, NSMenuDelegate {
       menu.addItem(ClosureMenuItem("Notas sin procesar (\(pending))…", handler: actions.showPendingNotes))
     }
     menu.addItem(ClosureMenuItem("Historial…", handler: actions.showHistory))
+  }
+
+  /// Mando: encenderlo o apagarlo de un clic; al encender, la página con el QR.
+  private func addRemote(to menu: NSMenu) {
+    menu.addItem(.separator())
+    menu.addItem(.sectionHeader(title: "Mando"))
+    let remote = RemoteController.shared
+    if remote.isOn {
+      let clients = remote.clients == 0 ? "esperando al móvil" : "\(remote.clients) conectado"
+      menu.addItem(ClosureMenuItem("■ Apagar mando (\(clients))", handler: remote.stop))
+      menu.addItem(ClosureMenuItem("Ver el QR…", handler: actions.showRemote))
+    } else {
+      menu.addItem(ClosureMenuItem("● Encender mando") { [actions] in
+        remote.start()
+        actions.showRemote()
+      })
+    }
   }
 
   private func addCaptures(to menu: NSMenu) {
