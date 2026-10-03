@@ -3,7 +3,7 @@ import Testing
 
 @Suite struct SmokeTests {
   @Test func appInfoIsSet() {
-    #expect(AppInfo.version == "0.13.0")
+    #expect(AppInfo.version == "0.14.0")
     #expect(AppInfo.bundleID == "local.sintecla.app")
   }
 }

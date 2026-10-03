@@ -17,10 +17,11 @@ Inspirada en [Typeless](https://typeless.com); no tiene relación con ella. La a
 | **Finder** | Cortar y pegar archivos con ⌘X y ⌘V, como en Windows. Si ya usas otra app que cambia ⌘X en Finder, déjalo apagado. |
 | **Capturas** | ⇧⌘3 captura la pantalla y ⇧⌘4 una zona o una ventana: van al portapapeles y se abren en un editor para anotarlas (flecha, texto, rectángulo, lápiz, subrayador, pasos numerados, pixelar, regla, recortar y color bajo el cursor). Cada cambio se vuelve a copiar solo; ⌘S la guarda en archivo y ⌘P la deja flotando encima de todo. ⇧⌘2 copia el texto de cualquier zona de la pantalla o el contenido de un QR; ⇧⌘1, además, lo traduce o responde preguntas sobre él. |
 | **Alt-Tab** | ⌘Tab cambia de ventana, no de app, como en Windows: un panel con una miniatura de cada ventana del escritorio, por uso reciente (las minimizadas al final). Con ⌘ pulsado, Tab y las flechas eligen; al soltar, salta. Sustituye al ⌘Tab de macOS mientras está encendido. |
-| **Dock** | Al pasar el ratón por una app abierta del Dock salen sus ventanas, con una miniatura de cada una: un clic salta a una, y la tarjeta marcada tiene botones para cerrarla o minimizarla. |
+| **Dock** | Al pasar el ratón por una app abierta del Dock salen sus ventanas, con una miniatura de cada una: un clic salta a una, y la tarjeta marcada tiene botones para cerrarla, minimizarla o salir de la app. |
+| **Isla** | La muesca del MacBook cobra vida, como la Dynamic Island: la música que suena (carátula, onda, y al pasar el ratón la canción con sus controles) y el dictado, las reuniones y los avisos de Sintecla. Al dictar, la música se pausa y vuelve al terminar. |
 | **Y además** | Historial, estadísticas, atajos configurables, modo susurro y tecla ⌥ derecha para teclados sin 🌐. |
 
-Dictado, Reuniones, Finder, Capturas, Alt-Tab y Dock son **módulos**: se encienden y se apagan en la página **Módulos** de la ventana de Sintecla, y uno apagado desaparece del menú y deja de funcionar. Finder, Capturas, Alt-Tab y Dock vienen apagados.
+Dictado, Reuniones, Finder, Capturas, Alt-Tab, Dock e Isla son **módulos**: se encienden y se apagan en la página **Módulos** de la ventana de Sintecla, y uno apagado desaparece del menú y deja de funcionar. Finder, Capturas, Alt-Tab, Dock e Isla vienen apagados.
 
 ## Requisitos
 
@@ -79,6 +80,8 @@ Con el módulo Capturas encendido: `⇧⌘3` pantalla, `⇧⌘4` zona o ventana,
 Con el módulo Alt-Tab encendido: `⌘Tab` abre el selector de ventanas (`⇧⌘Tab`, hacia atrás); con `⌘` pulsado, `Tab`, `⇧Tab` y las flechas mueven la marca, `Esc` cierra y al soltar `⌘` salta a la ventana marcada.
 
 Con el módulo Dock encendido: al pasar el ratón por una app del Dock salen sus ventanas, y `Esc` cierra la vista.
+
+Con el módulo Isla encendido: al pasar el ratón por la isla con música se despliega; un clic en la carátula abre la app que suena y la barra de progreso se puede arrastrar.
 
 ## Privacidad
 
