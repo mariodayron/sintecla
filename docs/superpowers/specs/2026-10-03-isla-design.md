@@ -1,6 +1,6 @@
 # La isla: la muesca de Sintecla — Diseño
 
-- **Estado:** diseño aprobado por el usuario el 2026-10-03.
+- **Estado:** diseño aprobado por el usuario el 2026-10-03. Ajustado ese mismo día al probar el prototipo: lo de Sintecla sale en la isla aunque se trabaje en la pantalla externa, y con la tapa cerrada hay una isla virtual (§3.6).
 - **Relación:**
   - un módulo más de `2026-09-25-bateria-modulos-design.md` (§2);
   - se lleva a la muesca la pastilla de la spec principal (`2026-09-23-sintecla-design.md`): dictado, reunión y avisos.
@@ -14,7 +14,7 @@ Que la muesca del MacBook sea una **isla viva**, como la Dynamic Island del iPho
 - **todo lo de Sintecla** que hoy sale en la pastilla de abajo.
 
 **No-objetivos:**
-- isla en pantallas sin muesca (en la externa, la pastilla sigue abajo como ahora);
+- la música en pantallas sin muesca (con la tapa cerrada, la isla virtual solo lleva lo de Sintecla);
 - notificaciones de otras apps (macOS no deja leerlas);
 - una onda que siga el sonido real (habría que grabar el audio del Mac todo el rato);
 - volumen, salida de audio (AirPlay) o listas de reproducción;
@@ -23,13 +23,14 @@ Que la muesca del MacBook sea una **isla viva**, como la Dynamic Island del iPho
 ## 2. El módulo
 
 - **Módulo «Isla»:** UserDefaults `moduleIsland`, **apagado de fábrica**. Es el séptimo en Módulos. Su símbolo es `capsule.tophalf.filled`.
-- **Encendido y con la pantalla del MacBook a la vista:** la pastilla de Sintecla sale en la isla, no abajo.
-- **Apagado, o sin pantalla con muesca** (tapa cerrada con pantalla externa): todo como ahora.
+- **Encendido y con la pantalla del MacBook a la vista:** la pastilla de Sintecla sale en la isla, no abajo, aunque se esté trabajando en otra pantalla.
+- **Encendido y con la tapa cerrada:** isla virtual (§3.6).
+- **Apagado:** todo como ahora.
 - **Permisos:** ninguno nuevo.
 - **Página «Isla»:**
   - qué enseña y cómo se usa;
   - si hay música disponible: «Música: lista» o «Música: no disponible en este macOS».
-- **Tarjeta de Inicio:** «Música y Sintecla en la muesca»; sin pantalla con muesca, «Sin muesca: la isla sale en la pantalla del MacBook».
+- **Tarjeta de Inicio:** «Música y Sintecla en la muesca»; sin pantalla con muesca, «Sin muesca: solo Sintecla, arriba en el centro».
 
 ## 3. Cómo se comporta
 
@@ -67,7 +68,7 @@ En blanco y negro, como la pastilla de ahora; los textos son los mismos que en l
 
 | Estado | Isla |
 |---|---|
-| Escuchando (dictado, traducir, preguntar, notas) | Baja a 46 puntos de alto: el icono del modo, el texto («Escuchando…» y debajo «Esc cancela») y la onda de la voz |
+| Escuchando (dictado, traducir, preguntar, notas) | Crece 86 puntos por lado y baja 30 por debajo de la muesca: el icono del modo a la izquierda, la onda de la voz a la derecha (en notas, también el cronómetro) y el texto debajo («Escuchando… (Esc cancela)») |
 | Procesando | Compacta, con «Procesando…» (o «Traduciendo…», «Pensando…»…) y un brillo que recorre el borde |
 | Hecho | Un ✓ breve y se recoge |
 | Reunión | Alta: ⏺, «Reunión · 12:48» y debajo la última frase oída |
@@ -85,6 +86,12 @@ En blanco y negro, como la pastilla de ahora; los textos son los mismos que en l
 - La isla solo recibe el ratón **dentro de su forma**. La barra de menús de alrededor sigue funcionando como siempre.
 - **No activa Sintecla:** la app de delante sigue con el teclado.
 - **Pantalla completa:** en reposo (muesca, compacta) se esconde; las actividades de Sintecla sí salen.
+
+### 3.6 Sin muesca (tapa cerrada)
+
+- **Isla virtual:** arriba en el centro de la pantalla principal, colgando de la barra de menús, con una muesca imaginaria de 180 puntos de ancho y el alto de la barra.
+- **Solo lo de Sintecla:** baja al dictar, en reuniones y con los avisos, igual que con muesca y sin burbuja. Sin nada que enseñar, no se ve.
+- **Sin música** (lo eligió el usuario). La pausa al dictar sigue funcionando.
 
 ## 4. La música por dentro
 
@@ -153,8 +160,9 @@ En blanco y negro, como la pastilla de ahora; los textos son los mismos que en l
 7. Procesando, hecho, reunión con su cronómetro, y un aviso de Capturas en la isla.
 8. La barra de menús junto a la isla responde; la app de delante no pierde el teclado.
 9. Pantalla completa (un vídeo): la isla en reposo no molesta; un dictado sí sale.
-10. Pantalla externa con la tapa cerrada: la pastilla abajo, como siempre.
-11. Alt-Tab, Dock, Capturas y el resto, como antes.
+10. Con el ratón en la pantalla externa y la tapa abierta, dictar: sale en la isla del MacBook.
+11. Con la tapa cerrada: sin música en la isla; al dictar, la isla baja arriba en el centro.
+12. Alt-Tab, Dock, Capturas y el resto, como antes.
 
 ### 6.3 Riesgos
 
