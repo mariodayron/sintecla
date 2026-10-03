@@ -1,6 +1,6 @@
 # La isla: la muesca de Sintecla — Diseño
 
-- **Estado:** diseño aprobado por el usuario el 2026-10-03. Ajustado ese mismo día al probar el prototipo: lo de Sintecla sale en la isla aunque se trabaje en la pantalla externa, y con la tapa cerrada hay una isla virtual (§3.6).
+- **Estado:** diseño aprobado por el usuario el 2026-10-03. Ajustado ese mismo día al probar el prototipo: lo de Sintecla sale en la isla aunque se trabaje en la pantalla externa, y con la tapa cerrada hay una isla virtual (§3.6). Entregado en `v0.14.0` (aceptado por el usuario).
 - **Relación:**
   - un módulo más de `2026-09-25-bateria-modulos-design.md` (§2);
   - se lleva a la muesca la pastilla de la spec principal (`2026-09-23-sintecla-design.md`): dictado, reunión y avisos.
