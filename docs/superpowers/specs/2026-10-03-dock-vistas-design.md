@@ -1,6 +1,6 @@
 # Vistas del Dock — Diseño
 
-- **Estado:** diseño aprobado por el usuario el 2026-10-03. Ajustado ese mismo día tras ver el prototipo: tarjetas más grandes, botón para salir de la app y vista algo más separada del icono.
+- **Estado:** diseño aprobado por el usuario el 2026-10-03. Ajustado ese mismo día tras ver el prototipo: tarjetas más grandes, botón para salir de la app y vista algo más separada del icono. Entregado en `v0.13.0` (aceptado por el usuario), con los botones como los semáforos de macOS.
 - **Relación:** un módulo más de `2026-09-25-bateria-modulos-design.md` (§2). Es el primer paso del «dock útil configurable». Reutiliza la lista de ventanas, las miniaturas y el salto de `2026-10-03-alt-tab-design.md`.
 - **Versión:** 0.13.0 (build 14), rama `dock`, un solo plan.
 - **Después:** la muesca (0.14.0, con su propio diseño): la pastilla de Sintecla, música y notificaciones. Con este módulo aceptado, se desinstala DockDoor (§9).
