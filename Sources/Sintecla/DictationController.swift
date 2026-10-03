@@ -44,6 +44,8 @@ final class DictationController {
   private lazy var altTab = AltTabController(settings: settings)
   /// Módulo Dock.
   private lazy var dock = DockPreviewController(settings: settings)
+  /// Módulo Isla: la pastilla en la muesca y la música.
+  private lazy var island = IslandController(settings: settings, overlay: overlayModel)
 
   init(settings: AppSettings, meetings: MeetingLibrary) {
     self.settings = settings
@@ -82,6 +84,7 @@ final class DictationController {
     // Solo con el teclado escuchándose: si no, apagar el ⌘Tab de macOS dejaría sin ninguno.
     altTab.start()
     dock.start()
+    island.start()
     try? history.compact()
     if Permissions.typelessRunning {
       show(.message("Typeless está abierto: ciérralo (también usa 🌐)"))
@@ -426,7 +429,7 @@ final class DictationController {
   private func show(_ phase: OverlayModel.Phase) {
     hideTask?.cancel()
     overlayModel.phase = phase
-    overlay.show()
+    presentOverlay()
     switch phase {
     case .done: scheduleHide(after: 0.7)
     case .message, .notice: scheduleHide(after: 2.5)
@@ -448,7 +451,7 @@ final class DictationController {
     if recorder.isRecording {
       overlayModel.startedAt = meetings.recordingSince
       overlayModel.phase = .listening(.meeting)
-      overlay.show()
+      presentOverlay()
       return
     }
     if let notice = pendingNotice {
@@ -461,5 +464,14 @@ final class DictationController {
     overlayModel.startedAt = nil
     overlayModel.liveText = ""
     overlay.hide()
+  }
+
+  /// La isla si está encendida y la pantalla del MacBook está a la vista; si no, la pastilla de abajo (spec «La isla» §2).
+  private func presentOverlay() {
+    if island.claimActivity() {
+      overlay.hide()
+    } else {
+      overlay.show()
+    }
   }
 }
