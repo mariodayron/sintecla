@@ -107,8 +107,11 @@ struct OverlayView: View {
       : String(format: "%02d:%02d", s / 60, s % 60)
   }
 
-  private var symbol: String {
-    switch model.phase {
+  private var symbol: String { Self.symbol(for: model.phase) }
+
+  /// El icono de cada estado (también lo usa la isla).
+  static func symbol(for phase: OverlayModel.Phase) -> String {
+    switch phase {
     case .listening(let mode): Self.icon(for: mode)
     case .processing: "ellipsis"
     case .done: "checkmark"
@@ -118,11 +121,13 @@ struct OverlayView: View {
     }
   }
 
-  /// Texto de la cápsula; nil = solo la gota (al terminar, la cápsula se funde en ella).
-  private var label: String? {
-    switch model.phase {
-    case .listening(.notes): model.liveText.isEmpty ? "Tomando notas… (Esc cancela)" : model.liveText
-    case .listening(.meeting): model.liveText.isEmpty ? "Reunión" : model.liveText
+  private var label: String? { Self.label(for: model.phase, liveText: model.liveText) }
+
+  /// Texto de la cápsula (también lo usa la isla); nil = solo la gota (al terminar, la cápsula se funde en ella).
+  static func label(for phase: OverlayModel.Phase, liveText: String) -> String? {
+    switch phase {
+    case .listening(.notes): liveText.isEmpty ? "Tomando notas… (Esc cancela)" : liveText
+    case .listening(.meeting): liveText.isEmpty ? "Reunión" : liveText
     case .listening(.translation): "Escuchando para traducir…"
     case .listening(.ask): "Pide o pregunta… (Esc cancela)"
     case .listening: "Escuchando… (Esc cancela)"
