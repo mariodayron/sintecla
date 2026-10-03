@@ -1,6 +1,6 @@
 # Vistas del Dock — Diseño
 
-- **Estado:** diseño aprobado por el usuario el 2026-10-03.
+- **Estado:** diseño aprobado por el usuario el 2026-10-03. Ajustado ese mismo día tras ver el prototipo: tarjetas más grandes, botón para salir de la app y vista algo más separada del icono.
 - **Relación:** un módulo más de `2026-09-25-bateria-modulos-design.md` (§2). Es el primer paso del «dock útil configurable». Reutiliza la lista de ventanas, las miniaturas y el salto de `2026-10-03-alt-tab-design.md`.
 - **Versión:** 0.13.0 (build 14), rama `dock`, un solo plan.
 - **Después:** la muesca (0.14.0, con su propio diseño): la pastilla de Sintecla, música y notificaciones. Con este módulo aceptado, se desinstala DockDoor (§9).
@@ -15,7 +15,7 @@ Para cambiar entre dos ventanas de la misma app basta con esto: el usuario no qu
 - un Dock propio o cambiar el de macOS (es el «dock configurable», más adelante);
 - vistas de carpetas, de la Papelera o de apps cerradas;
 - ventanas de otros escritorios;
-- salir de la app, o cerrar todas sus ventanas, desde la vista;
+- cerrar todas las ventanas de la app de una vez;
 - un atajo para las ventanas de la app de delante (ya está ⌘º de macOS);
 - ajustes de tiempos o tamaños: se fijan aquí y se ajustan con el prototipo.
 
@@ -39,10 +39,11 @@ Para cambiar entre dos ventanas de la misma app basta con esto: el usuario no qu
 - **Tarjetas:**
   - pasar el ratón por una la marca;
   - un **clic** la pone delante (la restaura si estaba minimizada) y la vista se cierra;
-  - en la tarjeta marcada salen dos botoncitos arriba a la izquierda, **cerrar** y **minimizar** (o **restaurar** si está minimizada).
+  - en la tarjeta marcada salen tres botones arriba a la izquierda: **cerrar**, **minimizar** (o **restaurar** si está minimizada) y **salir** (⏻).
 - **Cerrar** es cerrar la ventana, no salir de la app. Si la ventana tiene cambios sin guardar, la app saca su aviso de guardar, como siempre.
-- **Tras cerrar o minimizar,** la vista se actualiza sin irse. Si ya no queda ninguna ventana, se cierra.
-- **Desaparecer:** al salir el ratón del icono y de la vista, tras **0,25 s** de margen, que es lo que da tiempo a ir del icono a la vista. También al hacer clic en el Dock, al pulsar Esc o al abrirse Alt-Tab.
+- **Salir** cierra la app del todo, como ⌘Q (si tiene algo sin guardar, pregunta). La vista se va.
+- **Tras cerrar o minimizar,** la vista se actualiza sin irse. Si ya no queda ninguna ventana, se cierra. Si se encoge y el ratón se queda fuera, no se va hasta que el ratón sale de donde estaba.
+- **Desaparecer:** al salir el ratón del icono y de la vista, tras **0,25 s** de margen, que es lo que da tiempo a ir del icono a la vista. También al hacer clic en el Dock, al pulsar Esc o al abrirse Alt-Tab. Cerrada así, no vuelve a salir para ese icono hasta que el ratón sale de él.
 - **Sin vista:**
   - apps sin ventanas en el escritorio actual;
   - apps cerradas, carpetas, Papelera y separadores.
@@ -59,12 +60,12 @@ Una ventana sin título enseña el nombre de su app.
 ## 5. La vista
 
 - **Dónde:**
-  - pegada al icono, del lado de dentro de la pantalla (encima si el Dock está abajo, a la derecha si está a la izquierda, a la izquierda si está a la derecha), con 8 puntos de hueco;
+  - junto al icono, del lado de dentro de la pantalla (encima si el Dock está abajo, a la derecha si está a la izquierda, a la izquierda si está a la derecha), a 36 puntos, para no tapar el nombre que pone el Dock;
   - centrada en el icono;
-  - si se saliera de la pantalla, se corre hasta caber.
+  - si se saliera de la pantalla, se corre hasta caber, con 8 puntos de margen.
 - **Cristal** (Liquid Glass), como el selector de Alt-Tab. No activa Sintecla y está por encima del Dock.
 - **Tarjetas:**
-  - las mismas de Alt-Tab, más pequeñas: unos **160 puntos** de ancho;
+  - las mismas de Alt-Tab, de **240 puntos** de ancho, con botones de 24 puntos;
   - en **una fila** si el Dock está abajo y en **una columna** si está a un lado;
   - si no caben en el 80 % de la pantalla, se encogen.
 - **Miniaturas:** la vista sale con iconos y cada miniatura llega en cuanto se captura, como en Alt-Tab.
@@ -80,10 +81,12 @@ Una ventana sin título enseña el nombre de su app.
    - su sitio en pantalla (`AXPosition` y `AXSize`).
 
    El sitio se lee en cada cambio, porque la lupa del Dock mueve los iconos.
-4. El lado del Dock sale de su lista (`AXOrientation`) o, si no, de comparar el icono con los bordes de la pantalla.
+4. El lado del Dock es el borde de la pantalla más cercano al icono (funciona igual con la lupa).
 5. **Si el Dock se reinicia** (al cambiar sus ajustes, por ejemplo), Sintecla vuelve a apuntarse en cuanto el Dock arranca de nuevo.
 
-**Si el aviso no llegara** en macOS 27 (se comprueba lo primero en el prototipo), la alternativa es mirar el ratón cuando se mueve cerca del borde del Dock y preguntar a Accesibilidad qué hay debajo (`AXUIElementCopyElementAtPosition`).
+**Comprobado en macOS 27.0.1:** el aviso llega en cada icono, repetido mientras la lupa lo mueve. **No avisa** al salir el ratón del Dock ni al volver al mismo icono. Por eso:
+- mientras la vista espera o está abierta, Sintecla mira el ratón cada 50 ms;
+- con la vista quieta, al mover el ratón compara su sitio con el del último icono (solo un rectángulo, sin preguntar a Accesibilidad).
 
 ## 7. Piezas
 
@@ -96,7 +99,7 @@ Una ventana sin título enseña el nombre de su app.
 | `AppSettings.moduleDock` | App | El interruptor |
 | `DockWatcher` | App | Escucha el Dock por Accesibilidad (§6) y se reengancha si se reinicia |
 | `WindowCatalog` (+) | App | La lista de una sola app; cerrar una ventana (`kAXCloseButtonAttribute` y pulsarlo); minimizar y restaurar |
-| `WindowCard` | App | La tarjeta, sacada del selector de Alt-Tab para compartirla, con los botoncitos opcionales |
+| `WindowCard` | App | La tarjeta, sacada del selector de Alt-Tab para compartirla, con los botones opcionales (cerrar, minimizar y salir) |
 | `DockPreviewPanel` | App | La vista de cristal junto al icono |
 | `DockPreviewController` | App | Une el Dock, los tiempos, la lista y la vista |
 | `DockPage`, tarjeta de Inicio | App | §2 |
@@ -129,15 +132,16 @@ Con DockDoor cerrado:
 4. Pasar de un icono a otro con la vista abierta: cambia al momento.
 5. Minimizar desde la vista: la tarjeta pasa a atenuada; restaurar desde ella.
 6. Cerrar una ventana desde la vista: desaparece su tarjeta. Con cambios sin guardar, sale el aviso de la app.
-7. Una app sin ventanas, una carpeta y la Papelera: no sale nada.
-8. Dock a la izquierda (Ajustes del Sistema): la vista sale a la derecha del icono. Volver a ponerlo abajo.
-9. Alt-Tab, dictado, Finder, Capturas y el resto, como antes.
+7. ⏻ en una app que se pueda cerrar sin miedo: se cierra como con ⌘Q.
+8. Una app sin ventanas, una carpeta y la Papelera: no sale nada.
+9. Dock a la izquierda (Ajustes del Sistema): la vista sale a la derecha del icono. Volver a ponerlo abajo.
+10. Alt-Tab, dictado, Finder, Capturas y el resto, como antes.
 
 ### 8.3 Riesgos
 
 | Riesgo | Mitigación |
 |---|---|
-| macOS 27 no avisa del icono bajo el ratón | Se prueba primero en el prototipo; si no, la alternativa de §6 |
+| macOS 27 no avisa del icono bajo el ratón | Comprobado que sí avisa; lo que no avisa (salir, volver al mismo icono) se cubre mirando el ratón (§6) |
 | La lupa del Dock mueve los iconos | El sitio se lee en cada cambio |
 | El Dock se reinicia y se pierde el aviso | Se vuelve a apuntar al arrancar el Dock |
 | Una app no responde a Accesibilidad | El tiempo máximo de 0,1 s de Alt-Tab |
