@@ -38,6 +38,8 @@ final class AppSettings {
   var moduleAltTab: Bool { didSet { defaults.set(moduleAltTab, forKey: "moduleAltTab") } }
   /// Módulo Dock (spec «Vistas del Dock»), apagado por defecto.
   var moduleDock: Bool { didSet { defaults.set(moduleDock, forKey: "moduleDock") } }
+  /// Módulo Isla (spec «La isla»), apagado por defecto.
+  var moduleIsland: Bool { didSet { defaults.set(moduleIsland, forKey: "moduleIsland") } }
   /// Dónde guarda ⌘S las capturas (spec «Editor de capturas completo» §4). De fábrica, el Escritorio.
   var captureFolder: String { didSet { defaults.set(captureFolder, forKey: "captureFolder") } }
   var dictionary: PersonalDictionary { didSet { try? JSONFileStore.save(dictionary, to: AppPaths.dictionaryURL) } }
@@ -54,7 +56,7 @@ final class AppSettings {
       "learnCorrections": true,
       "saveMeetingAudio": true, "meetingNoticeShown": false,
       "finderCut": false, "moduleDictation": true, "moduleMeetings": true, "moduleCaptures": false,
-      "moduleAltTab": false, "moduleDock": false,
+      "moduleAltTab": false, "moduleDock": false, "moduleIsland": false,
       "captureFolder": Self.desktop,
     ])
     language = defaults.string(forKey: "language") ?? "es_ES"
@@ -76,6 +78,7 @@ final class AppSettings {
     moduleCaptures = defaults.bool(forKey: "moduleCaptures")
     moduleAltTab = defaults.bool(forKey: "moduleAltTab")
     moduleDock = defaults.bool(forKey: "moduleDock")
+    moduleIsland = defaults.bool(forKey: "moduleIsland")
     captureFolder = defaults.string(forKey: "captureFolder") ?? Self.desktop
     dictionary = JSONFileStore.load(PersonalDictionary.self, from: AppPaths.dictionaryURL) ?? PersonalDictionary()
     tones = JSONFileStore.load(ToneRules.self, from: AppPaths.tonesURL) ?? .defaults
@@ -91,7 +94,7 @@ final class AppSettings {
   var modules: ModuleSwitches {
     get {
       ModuleSwitches(dictation: moduleDictation, meetings: moduleMeetings, finder: finderCut, captures: moduleCaptures,
-                     altTab: moduleAltTab, dock: moduleDock)
+                     altTab: moduleAltTab, dock: moduleDock, island: moduleIsland)
     }
     set {
       if moduleDictation != newValue.dictation { moduleDictation = newValue.dictation }
@@ -100,6 +103,7 @@ final class AppSettings {
       if moduleCaptures != newValue.captures { moduleCaptures = newValue.captures }
       if moduleAltTab != newValue.altTab { moduleAltTab = newValue.altTab }
       if moduleDock != newValue.dock { moduleDock = newValue.dock }
+      if moduleIsland != newValue.island { moduleIsland = newValue.island }
     }
   }
 

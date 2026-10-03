@@ -2,7 +2,7 @@ import Foundation
 
 /// Los módulos de Sintecla (spec «Módulos y batería» §2). Cada uno se enciende o se apaga en la página Módulos.
 public enum Module: String, CaseIterable, Sendable {
-  case dictation, meetings, finder, captures, altTab, dock
+  case dictation, meetings, finder, captures, altTab, dock, island
 
   public var name: String {
     switch self {
@@ -12,6 +12,7 @@ public enum Module: String, CaseIterable, Sendable {
     case .captures: "Capturas"
     case .altTab: "Alt-Tab"
     case .dock: "Dock"
+    case .island: "Isla"
     }
   }
 
@@ -23,6 +24,7 @@ public enum Module: String, CaseIterable, Sendable {
     case .captures: "camera.viewfinder"
     case .altTab: "rectangle.on.rectangle"
     case .dock: "dock.rectangle"
+    case .island: "capsule.tophalf.filled"
     }
   }
 
@@ -38,6 +40,8 @@ public enum Module: String, CaseIterable, Sendable {
       + "necesitan el permiso de Grabación de pantalla."
     case .dock: "Al pasar el ratón por una app del Dock, enseña sus ventanas para saltar a una, cerrarla o minimizarla. "
       + "Las miniaturas necesitan el permiso de Grabación de pantalla."
+    case .island: "La muesca del MacBook cobra vida, como la Dynamic Island: la música que suena y el dictado, las "
+      + "reuniones y los avisos de Sintecla. Al dictar, la música se pausa."
     }
   }
 
@@ -52,6 +56,7 @@ public enum ModulePage: String, CaseIterable, Hashable, Sendable {
   case captures
   case altTab
   case dock
+  case island
 
   public var module: Module {
     switch self {
@@ -61,6 +66,7 @@ public enum ModulePage: String, CaseIterable, Hashable, Sendable {
     case .captures: .captures
     case .altTab: .altTab
     case .dock: .dock
+    case .island: .island
     }
   }
 
@@ -77,6 +83,7 @@ public enum ModulePage: String, CaseIterable, Hashable, Sendable {
     case .captures: "Capturas"
     case .altTab: "Alt-Tab"
     case .dock: "Dock"
+    case .island: "Isla"
     }
   }
 
@@ -93,6 +100,7 @@ public enum ModulePage: String, CaseIterable, Hashable, Sendable {
     case .captures: "camera.viewfinder"
     case .altTab: "rectangle.on.rectangle"
     case .dock: "dock.rectangle"
+    case .island: "capsule.tophalf.filled"
     }
   }
 }
@@ -105,15 +113,17 @@ public struct ModuleSwitches: Equatable, Sendable {
   public var captures: Bool
   public var altTab: Bool
   public var dock: Bool
+  public var island: Bool
 
   public init(dictation: Bool, meetings: Bool, finder: Bool, captures: Bool = false, altTab: Bool = false,
-              dock: Bool = false) {
+              dock: Bool = false, island: Bool = false) {
     self.dictation = dictation
     self.meetings = meetings
     self.finder = finder
     self.captures = captures
     self.altTab = altTab
     self.dock = dock
+    self.island = island
   }
 
   public subscript(module: Module) -> Bool {
@@ -125,6 +135,7 @@ public struct ModuleSwitches: Equatable, Sendable {
       case .captures: captures
       case .altTab: altTab
       case .dock: dock
+      case .island: island
       }
     }
     set {
@@ -135,6 +146,7 @@ public struct ModuleSwitches: Equatable, Sendable {
       case .captures: captures = newValue
       case .altTab: altTab = newValue
       case .dock: dock = newValue
+      case .island: island = newValue
       }
     }
   }

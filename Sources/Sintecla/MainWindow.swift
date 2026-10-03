@@ -115,6 +115,7 @@ struct MainView: View {
     case .captures: CapturesPage(settings: settings)
     case .altTab: AltTabPage()
     case .dock: DockPage()
+    case .island: IslandPage()
     }
   }
 }

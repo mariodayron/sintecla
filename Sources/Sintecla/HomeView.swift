@@ -77,6 +77,11 @@ struct HomeView: View {
         Label("Sin miniaturas: falta el permiso de Grabación de pantalla", systemImage: "exclamationmark.triangle")
           .font(.callout)
       }
+    case .island:
+      Text("Música y Sintecla en la muesca").foregroundStyle(.secondary)
+      if NotchScreen.current == nil {
+        Label("Sin muesca: solo Sintecla, arriba en el centro", systemImage: "macbook").font(.callout)
+      }
     }
   }
 }
