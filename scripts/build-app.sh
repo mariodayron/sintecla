@@ -6,6 +6,7 @@
 #   SIGN_ID="Mi certificado" scripts/build-app.sh → firma con un certificado del Llavero
 set -euo pipefail
 cd "$(dirname "$0")/.."
+source scripts/sdk-env.sh
 
 APP_NAME="Sintecla"
 BUNDLE_ID="local.sintecla.app"
