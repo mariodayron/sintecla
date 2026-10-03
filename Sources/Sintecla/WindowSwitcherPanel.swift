@@ -25,7 +25,8 @@ struct WindowSwitcherView: View {
     LazyVGrid(columns: Array(repeating: GridItem(.fixed(model.cardWidth), spacing: 12), count: model.columns),
               spacing: 12) {
       ForEach(Array(model.windows.enumerated()), id: \.element.id) { index, window in
-        card(window, chosen: model.selected == index)
+        WindowCard(window: window, thumbnail: model.thumbnails[window.id], width: model.cardWidth,
+                   chosen: model.selected == index)
           .onHover { if $0 { onHover(index) } }
           .onTapGesture { onClick(index) }
       }
@@ -33,31 +34,6 @@ struct WindowSwitcherView: View {
     .padding(16)
     .glassEffect(.regular, in: .rect(cornerRadius: 28))
     .padding(6)
-  }
-
-  private func card(_ window: SwitcherWindow, chosen: Bool) -> some View {
-    let icon = NSRunningApplication(processIdentifier: window.pid)?.icon ?? NSImage(named: NSImage.applicationIconName)!
-    return VStack(alignment: .leading, spacing: 6) {
-      ZStack {
-        if let thumbnail = model.thumbnails[window.id] {
-          Image(decorative: thumbnail, scale: 2).resizable().aspectRatio(contentMode: .fit)
-            .clipShape(.rect(cornerRadius: 6))
-        } else {
-          Image(nsImage: icon).resizable().frame(width: 64, height: 64)
-        }
-      }
-      .frame(width: model.cardWidth - 16, height: (model.cardWidth - 16) * 0.66)
-      HStack(spacing: 6) {
-        Image(nsImage: icon).resizable().frame(width: 16, height: 16)
-        Text(window.label).font(.callout).lineLimit(1).truncationMode(.tail)
-      }
-    }
-    .padding(8)
-    .frame(width: model.cardWidth)
-    .background(chosen ? Color.accentColor.opacity(0.22) : .clear, in: .rect(cornerRadius: 12))
-    .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Color.accentColor, lineWidth: chosen ? 2 : 0))
-    .opacity(window.isMinimized ? 0.55 : 1)
-    .contentShape(.rect)
   }
 }
 

@@ -15,8 +15,8 @@ final class WindowCatalog {
   private var elements: [Int: AXUIElement] = [:]
   private var frames: [Int: CGRect] = [:]
 
-  /// Lee las ventanas en este momento.
-  func refresh() {
+  /// Lee las ventanas en este momento: todas o, con `pid`, solo las de esa app (vistas del Dock).
+  func refresh(only pid: pid_t? = nil) {
     elements = [:]
     frames = [:]
     let own = ProcessInfo.processInfo.processIdentifier
@@ -38,7 +38,7 @@ final class WindowCatalog {
                                     layer: entry[kCGWindowLayer as String] as? Int ?? 0, size: frame.size))
     }
     var minimized: [SwitcherWindow] = []
-    for app in regular where app.processIdentifier != own {
+    for app in regular where app.processIdentifier != own && (pid == nil || app.processIdentifier == pid) {
       for element in Self.windows(of: app.processIdentifier) where Self.value(element, kAXMinimizedAttribute) == true {
         let id = -(minimized.count + 1)
         elements[id] = element
@@ -48,6 +48,7 @@ final class WindowCatalog {
       }
     }
     windows = WindowSwitcherOrder.arrange(visible: visible, minimized: minimized, ownPID: own, agentPIDs: agentPIDs)
+      .filter { pid == nil || $0.pid == pid }
   }
 
   /// La pone delante: si estaba minimizada, la restaura; luego activa su app y la sube por encima de las demás.
@@ -66,6 +67,20 @@ final class WindowCatalog {
       AXUIElementPerformAction(element, kAXRaiseAction as CFString)
       AXUIElementSetAttributeValue(element, kAXMainAttribute as CFString, kCFBooleanTrue)
     }
+  }
+
+  /// La cierra con su botón de cerrar, como un clic en él: si tiene cambios sin guardar, la app saca su aviso.
+  func close(_ window: SwitcherWindow) {
+    guard let element = elements[window.id] ?? visibleElement(for: window),
+          let button: AXUIElement = Self.value(element, kAXCloseButtonAttribute) else { return }
+    AXUIElementPerformAction(button, kAXPressAction as CFString)
+  }
+
+  /// La minimiza o, si ya lo está, la restaura.
+  func toggleMinimized(_ window: SwitcherWindow) {
+    guard let element = elements[window.id] ?? visibleElement(for: window) else { return }
+    AXUIElementSetAttributeValue(element, kAXMinimizedAttribute as CFString,
+                                 window.isMinimized ? kCFBooleanFalse : kCFBooleanTrue)
   }
 
   /// La ventana de Accesibilidad que ocupa el mismo sitio (Accesibilidad no da el número de ventana de macOS); si no,
