@@ -1,9 +1,9 @@
 # Alt-Tab: ⌘Tab por ventanas — Diseño
 
-- **Estado:** diseño aprobado por el usuario el 2026-10-03.
+- **Estado:** diseño aprobado por el usuario el 2026-10-03. Entregado en `v0.12.0` (aceptado por el usuario).
 - **Relación:** un módulo más de `2026-09-25-bateria-modulos-design.md` (§2), como Finder y Capturas. Es la pieza «Alt-Tab» de la hoja de ruta de `2026-09-25-herramientas-finder-design.md`.
 - **Versión:** 0.12.0 (build 13), rama `alt-tab`, un solo plan.
-- **Después:** un «dock útil configurable», con su propio diseño. Cuando este módulo funcione, se desinstala DockDoor (§9).
+- **Después:** un «dock útil configurable», con su propio diseño, que empieza por las vistas del Dock (0.13.0). DockDoor se desinstala cuando estén (§9).
 
 ## 1. Objetivo
 
@@ -140,4 +140,4 @@ Con DockDoor aún instalado (su selector ya está apagado):
 
 Un plan en la rama `alt-tab`, versión **0.12.0**, con la aceptación al final.
 
-Cuando el usuario acepte el módulo, **se desinstala DockDoor**: `/Applications/DockDoor.app` va a la Papelera. El usuario lo pidió el 2026-10-03. Sus vistas del Dock volverán con el dock configurable.
+El usuario pidió el 2026-10-03 **desinstalar DockDoor** (`/Applications/DockDoor.app` a la Papelera) cuando este módulo funcionara. Al aceptarlo, ese mismo día, se decidió esperar a las vistas del Dock de Sintecla (0.13.0), porque son lo que DockDoor sigue haciendo.
