@@ -53,6 +53,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
   }
 
+  /// El ⌘Tab de macOS vuelve siempre al salir, aunque Alt-Tab estuviera encendido.
+  func applicationWillTerminate(_ notification: Notification) {
+    NativeAppSwitcher.setEnabled(true)
+  }
+
   private func showOnboarding() {
     if onboardingWindow == nil {
       onboardingWindow = WindowFactory.make(title: "Sintecla", content: OnboardingView { [weak self] in

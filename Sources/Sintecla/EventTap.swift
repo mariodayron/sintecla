@@ -17,6 +17,8 @@ final class EventTap {
   /// Cada pulsación que no usan los atajos, con su código y sus modificadores, para las herramientas (cortar y pegar
   /// en Finder). Devuelve `true` si hay que tragársela.
   var onKeyDown: ((_ keyCode: Int64, _ modifiers: Set<ComboModifier>) -> Bool)?
+  /// Cada cambio de las teclas modificadoras, todas (también la ⌥ cuando es la tecla base): Alt-Tab salta al soltar ⌘.
+  var onModifiersChanged: ((Set<ComboModifier>) -> Void)?
 
   private var tap: CFMachPort?
   private var runLoopSource: CFRunLoopSource?
@@ -78,6 +80,7 @@ final class EventTap {
         lastModifiers = modifiers
         _ = onEvent?(.modifiers(modifiers, at: now))
       }
+      onModifiersChanged?(Self.modifiers(from: flags))
       return Unmanaged.passUnretained(event)  // los modificadores nunca se tragan
     case .keyDown:
       let hotkeyEvent: HotkeyEvent = switch keyCode {
