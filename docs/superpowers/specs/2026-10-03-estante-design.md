@@ -32,11 +32,12 @@ Dos interruptores nuevos en la página «Isla», los dos **encendidos de fábric
 
 ### 3.1 Meter archivos
 
-- **Ventana invisible sobre la muesca.** Tiene el tamaño exacto de la muesca real. Ahí no hay nada de la barra de menús, así que no tapa ningún clic. Solo acepta arrastres de archivos (URLs de archivo).
-- **Al llegar a la muesca con archivos arrastrados**, la isla se abre como **bandeja**: «Suelta aquí para guardarlo en el estante», con un borde discontinuo. Mientras la bandeja está abierta, el panel de la isla recibe el arrastre en toda su forma.
+- **La bandeja se abre al acercarse.** Mientras se arrastran archivos (el portapapeles de arrastre cambia y trae URLs de archivo), Sintecla mira el ratón. Al entrar en la **zona de la muesca** (la muesca más 120 puntos por cada lado y 110 por debajo), la isla se abre como **bandeja**: «Suelta aquí para guardarlo en el estante», con un borde discontinuo. Así no hace falta llegar al borde de arriba, que abre Mission Control (comprobado en el prototipo).
+- **Ventana sobre la muesca, por si acaso.** Una ventana invisible del tamaño exacto de la muesca real también acepta archivos. Ahí no hay nada de la barra de menús, así que no tapa ningún clic.
 - **Al soltar:** los archivos y carpetas se añaden al final del estante. Si uno ya estaba, no se repite.
-- **Si sales de la bandeja sin soltar:** se recoge a los 0,3 s, como la desplegada.
-- **A pantalla completa:** la isla está oculta, pero la ventana sobre la muesca sigue aceptando archivos.
+- **Al soltar el botón,** la bandeja espera 0,5 s antes de recogerse, para no perder la entrega (en el prototipo se perdía si se cerraba al instante).
+- **Si sales de la zona sin soltar:** se recoge a los 0,3 s, como la desplegada.
+- **A pantalla completa:** la isla está oculta, pero la bandeja se abre igual al acercar archivos.
 
 ### 3.2 Qué se ve
 
@@ -101,10 +102,9 @@ Sin muesca no hay estante: no se pueden soltar archivos y no se ve la fila. Los 
 ### 4.3 De dónde salen los datos
 
 - **Carga:** API de energía de macOS (`IOPSNotificationCreateRunLoopSource` y `IOPSCopyPowerSourcesInfo`): porcentaje, si está enchufado, si carga y tiempo restante. Avisa sola de cada cambio. No toca el SMC.
-- **AirPods:**
-  - **Conexión:** `IOBluetoothDevice.register(forConnectNotifications:selector:)`. Solo cuentan los auriculares de Apple (los que dan batería de cada auricular).
-  - **Batería:** se lee del dispositivo Bluetooth (izquierdo, derecho, estuche). Si no está disponible, de `system_profiler SPBluetoothDataType` (comprobado en el Mac del usuario: da izquierdo, derecho y estuche).
-- **Se comprueba primero en el prototipo** qué vía da la batería en macOS 27 y cuánto tarda.
+- **AirPods** (sin permisos nuevos; la vía Bluetooth directa pide el permiso de Bluetooth y se descarta):
+  - **Conexión:** al conectarse, los AirPods aparecen como dispositivo de audio con transporte Bluetooth. Se escucha la lista de dispositivos de Core Audio (`kAudioHardwarePropertyDevices`).
+  - **Batería:** `system_profiler SPBluetoothDataType -json` (unos 60 ms): `device_batteryLevelLeft`, `device_batteryLevelRight` y `device_batteryLevelCase` de los dispositivos conectados. Recién conectados puede que aún no la den: se reintenta a los 1, 3 y 6 s.
 
 ## 5. Piezas
 
@@ -118,20 +118,21 @@ Sin muesca no hay estante: no se pueden soltar archivos y no se ve la fila. Los 
 | `AppSettings.islandShelf`, `islandDeviceNotices` | App | Los interruptores |
 | `ShelfStore` | App | Guarda y carga `estante.json` con los marcadores; resuelve cada archivo |
 | `ShelfDropWindow` | App | La ventana invisible sobre la muesca que recibe los arrastres |
+| `FileDragWatcher` | App | Sabe si se están arrastrando archivos y dónde está el ratón, para abrir la bandeja |
 | `ShelfRow` | App | La fila; el arrastre hacia fuera con `NSDraggingSource`, para saber si se soltó y si había ⌥ |
 | `PowerMonitor` | App | Escucha la API de energía |
-| `AirPodsMonitor` | App | Escucha las conexiones Bluetooth y lee la batería |
+| `AirPodsMonitor` | App | Escucha los dispositivos de audio y lee la batería con `system_profiler` |
 | `IslandController`, `IslandView`, `IslandPanel` | App | Unen todo: formas, bandeja, fila, avisos y su cola |
 | `IslandPage` | App | Los dos interruptores y la ayuda del estante |
 | `AppInfo`, `Info.plist`, `SmokeTests`, README, spec principal | — | 0.15.0 (build 16) |
 
 ## 6. Pruebas y riesgos
 
-### 6.1 Antes del plan, en el prototipo
+### 6.1 Comprobado en el prototipo (2026-10-03)
 
-1. Una ventana sobre la muesca recibe un arrastre de archivos desde Finder (y no tapa clics de la barra de menús).
-2. La batería de los AirPods: por Bluetooth y, si no, por `system_profiler`; cuánto tarda.
-3. El aviso de la API de energía llega al enchufar y al desenchufar.
+1. Una ventana sobre la muesca recibe archivos arrastrados desde Finder. Llegar al borde de arriba abre Mission Control; abrir la bandeja al acercarse lo evita, y el monitor global de ratón sí ve el arrastre de Finder.
+2. La batería de los AirPods sale de `system_profiler` en JSON (izquierdo, derecho y estuche) en unos 60 ms. `IOBluetooth` cierra el programa sin el permiso de Bluetooth.
+3. La API de energía avisa al desenchufar («Battery Power», tiempo −1 mientras calcula) y al enchufar («AC Power»).
 
 ### 6.2 Tests automáticos
 
@@ -184,9 +185,9 @@ La batería baja no se fuerza a mano (habría que descargar el Mac): la cubren l
 
 | Riesgo | Mitigación |
 |---|---|
-| La ventana sobre la muesca no recibe arrastres (o tapa algo) | Se prueba primero; si falla, detectar el arrastre por la posición del ratón y abrir la bandeja |
-| No hay vía para leer la batería de los AirPods | `system_profiler` funciona en el Mac del usuario; si también falla, el aviso sale sin baterías |
-| `system_profiler` tarda | Se lanza en segundo plano; el aviso sale cuando llega el dato |
+| Mission Control al llegar arriba con un archivo | La bandeja se abre antes, en la zona de la muesca (§3.1) |
+| `system_profiler` deja de dar la batería | El aviso de conexión sale sin baterías |
+| `system_profiler` tarda o aún no tiene el dato | Se lanza en segundo plano y se reintenta (§4.3) |
 | Un archivo guardado se borra | Se quita solo del estante (§3.4) |
 | Los avisos molestan | Su interruptor en la página Isla |
 
