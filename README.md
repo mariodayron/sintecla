@@ -96,7 +96,8 @@ Y quita Sintecla de Ajustes del Sistema → Privacidad y seguridad (Accesibilida
 
 ## Desarrollo
 
-- `scripts/test.sh`: los tests (Swift Testing). Sin Xcode, `swift test` no funciona; por eso van en un ejecutable aparte. Con las Command Line Tools 27, la app y los tests se compilan con el SDK de macOS 26 (`scripts/sdk-env.sh`), porque el de macOS 27 necesita plugins de macros que solo trae Xcode.
+- `swift run sintecla-tests`: los tests (Swift Testing). Sin Xcode, `swift test` no funciona; por eso van en un ejecutable aparte.
+- Con las Command Line Tools 27, `build-app.sh` compila la app con el SDK de macOS 26 (`scripts/sdk-env.sh`): en el de macOS 27, `@State` de SwiftUI es una macro cuyo plugin solo trae Xcode. Para compilarla a mano: `source scripts/sdk-env.sh && swift build -c release --product Sintecla`.
 - `swift run -c release sintecla-eval [--traduccion | --ordenar]`: bancos de calidad con el modelo local (`Resources/eval/`). El de ordenar con Gemini: `Sintecla --rewrite-bench`.
 - `scripts/make-icon.sh`: regenera `Resources/AppIcon.icns` a partir del dibujo en código.
 - Órdenes de prueba sin abrir la app: `Sintecla --gemini-check`, `--rewrite "texto"`, `--translate "texto"`, `--ask "orden"`, `--transcribe audio.aiff`… (lista completa en `Sources/Sintecla/DebugCommands.swift`).

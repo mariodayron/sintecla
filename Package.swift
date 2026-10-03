@@ -5,6 +5,8 @@ import PackageDescription
 // los tests viven en una librería normal y los lanza el ejecutable `sintecla-tests`.
 let cltFrameworks = "/Library/Developer/CommandLineTools/Library/Developer/Frameworks"
 let cltLibs = "/Library/Developer/CommandLineTools/Library/Developer/usr/lib"
+// Las macros de Swift Testing (@Test, #expect): SwiftPM solo añade su plugin a los targets de test.
+let cltTestingPlugins = "/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing"
 let swift5: SwiftSetting = .swiftLanguageMode(.v5)
 
 let package = Package(
@@ -17,7 +19,7 @@ let package = Package(
     .target(
       name: "SinteclaCoreTests",
       dependencies: ["SinteclaCore"],
-      swiftSettings: [swift5, .unsafeFlags(["-F", cltFrameworks])]
+      swiftSettings: [swift5, .unsafeFlags(["-F", cltFrameworks, "-plugin-path", cltTestingPlugins])]
     ),
     .executableTarget(
       name: "sintecla-tests",
