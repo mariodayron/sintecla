@@ -22,6 +22,10 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN_DIR/$APP_NAME" "$APP/Contents/MacOS/$APP_NAME"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
 cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
+# El ayudante de música de la isla (spec «La isla» §4): una biblioteca que carga /usr/bin/perl con su script.
+clang -dynamiclib -O2 -Wall -Wextra -Wno-unused-parameter -mmacosx-version-min=26.0 -framework CoreFoundation \
+  Resources/Island/NowPlaying.c -o "$APP/Contents/Resources/NowPlaying.dylib"
+cp Resources/Island/now-playing.pl "$APP/Contents/Resources/now-playing.pl"
 
 if [ "$SIGN_ID" = "-" ]; then
   # Ad-hoc con requisito fijo: macOS identifica la app por su bundle id,
