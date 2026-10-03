@@ -16,7 +16,7 @@ import SinteclaCore
 ///   Sintecla --meeting-pdf transcripcion.jsonl acta.pdf  (la misma acta en PDF)
 ///   Sintecla --meeting-record segundos carpeta           (reunión real con el grabador; lanzar con `open`)
 ///   Sintecla --make-icon carpeta.iconset                 (PNG del icono; lo usa scripts/make-icon.sh)
-///   Sintecla --remote-serve segundos llave               (el servidor del Mando con esa llave, para probarlo)
+///   Sintecla --remote-serve segundos llave [puerto]      (el servidor del Mando con esa llave, para probarlo)
 enum DebugCommands {
   static let usage = """
     Uso: Sintecla --transcribe audio.aiff [es_ES|en_US] | --translate "texto" | --ask "orden" ["selección"]
@@ -24,7 +24,7 @@ enum DebugCommands {
                   | --notes transcripcion.txt | --gemini-check | --ask-bench | --mic-test [segundos]
                   | --meeting-summary transcripcion.jsonl | --meeting-pdf transcripcion.jsonl acta.pdf
                   | --meeting-record segundos carpeta | --make-icon carpeta.iconset
-                  | --remote-serve segundos llave
+                  | --remote-serve segundos llave [puerto]
     """
 
   /// nil = arrancar la app normal. Una opción "--" desconocida o incompleta muestra el uso (nunca abre la app).
@@ -47,7 +47,9 @@ enum DebugCommands {
     case "--meeting-pdf" where rest.count >= 2: return { await meetingPDF(path: first, output: rest[1]) }
     case "--meeting-record" where rest.count >= 2: return { await meetingRecord(seconds: Double(first) ?? 30, folder: rest[1]) }
     case "--make-icon" where !rest.isEmpty: return { makeIcon(folder: first) }
-    case "--remote-serve" where rest.count == 2: return { await remoteServe(seconds: Int(first) ?? 30, key: rest[1]) }
+    case "--remote-serve" where rest.count >= 2:
+      return { await remoteServe(seconds: Int(first) ?? 30, key: rest[1],
+                                 port: rest.count > 2 ? UInt16(rest[2]) ?? Remote.defaultPort : Remote.defaultPort) }
     default: return { usage }
     }
   }
@@ -293,7 +295,7 @@ enum DebugCommands {
 
   /// `Sintecla --make-icon carpeta.iconset`: los PNG del icono que junta `iconutil` (scripts/make-icon.sh).
   /// El servidor del Mando unos segundos, con las órdenes de verdad: para probarlo con `curl` desde otro terminal.
-  @MainActor static func remoteServe(seconds: Int, key: String) async -> String {
+  @MainActor static func remoteServe(seconds: Int, key: String, port: UInt16) async -> String {
     let server = RemoteServer()
     let control = RemoteControl()
     var log: [String] = []
@@ -305,8 +307,8 @@ enum DebugCommands {
     server.status = { ["battery": 0, "charging": false] }
     server.nowPlaying = { ["playing": false] }
     let started: String = await withCheckedContinuation { continuation in
-      server.start(port: Remote.defaultPort) { error in
-        continuation.resume(returning: error.map { "no arrancó: \($0)" } ?? "escuchando en \(Remote.defaultPort)")
+      server.start(port: port) { error in
+        continuation.resume(returning: error.map { "no arrancó: \($0)" } ?? "escuchando en \(port)")
       }
     }
     try? await Task.sleep(for: .seconds(seconds))

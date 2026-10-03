@@ -25,6 +25,7 @@ struct RemotePage: View {
             .controlSize(.large)
         }
         .padding(.vertical, 4)
+        Toggle("Encender al abrir Sintecla", isOn: $settings.remoteAlwaysOn)
         if case .failed(let reason) = remote.state {
           Label(reason, systemImage: "exclamationmark.triangle").foregroundStyle(.orange)
         }
@@ -43,7 +44,8 @@ struct RemotePage: View {
             VStack(alignment: .leading, spacing: 10) {
               Text("1. El móvil en la misma Wi-Fi que el Mac.")
               Text("2. Escanea el QR con la cámara y abre el enlace.")
-              Text("3. En Safari, Compartir → «Añadir a pantalla de inicio» para tenerlo como una app.")
+              Text("3. En Safari, Compartir → «Añadir a pantalla de inicio»: queda como una app, con la llave "
+                   + "guardada. Con «Encender al abrir Sintecla», siempre conecta.")
               Divider()
               Text(remote.link).font(.caption.monospaced()).textSelection(.enabled).lineLimit(2)
               if let ipLink = remote.ipLink {

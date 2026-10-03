@@ -20,6 +20,17 @@ public enum Remote {
     "http://\(host):\(port)/?k=\(key)"
   }
 
+  /// El manifiesto de la web app: al añadirla a la pantalla de inicio, se abre a pantalla completa y con la llave.
+  public static func manifest(key: String) -> Data {
+    let manifest: [String: Any] = [
+      "name": "Sintecla · Mando", "short_name": "Mando", "start_url": "/?k=\(key)", "scope": "/",
+      "display": "standalone", "background_color": "#000000", "theme_color": "#000000",
+      "icons": [["src": "/icon.png", "sizes": "180x180", "type": "image/png"]],
+    ]
+    return (try? JSONSerialization.data(withJSONObject: manifest, options: [.sortedKeys, .withoutEscapingSlashes]))
+      ?? Data()
+  }
+
   /// La cabecera `Sec-WebSocket-Accept` para una `Sec-WebSocket-Key` (RFC 6455 §4.2.2).
   public static func webSocketAccept(key: String) -> String {
     let digest = Insecure.SHA1.hash(data: Data((key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").utf8))

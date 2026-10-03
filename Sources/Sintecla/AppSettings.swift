@@ -44,6 +44,8 @@ final class AppSettings {
   var moduleRemote: Bool { didSet { defaults.set(moduleRemote, forKey: "moduleRemote") } }
   /// La llave del enlace del Mando: sin ella, el servidor no obedece. Se crea la primera vez.
   var remoteKey: String { didSet { defaults.set(remoteKey, forKey: "remoteKey") } }
+  /// Mando: encenderlo al abrir Sintecla, para que el móvil lo encuentre siempre.
+  var remoteAlwaysOn: Bool { didSet { defaults.set(remoteAlwaysOn, forKey: "remoteAlwaysOn") } }
   /// Dónde guarda ⌘S las capturas (spec «Editor de capturas completo» §4). De fábrica, el Escritorio.
   var captureFolder: String { didSet { defaults.set(captureFolder, forKey: "captureFolder") } }
   var dictionary: PersonalDictionary { didSet { try? JSONFileStore.save(dictionary, to: AppPaths.dictionaryURL) } }
@@ -60,7 +62,7 @@ final class AppSettings {
       "learnCorrections": true,
       "saveMeetingAudio": true, "meetingNoticeShown": false,
       "finderCut": false, "moduleDictation": true, "moduleMeetings": true, "moduleCaptures": false,
-      "moduleAltTab": false, "moduleDock": false, "moduleIsland": false, "moduleRemote": false,
+      "moduleAltTab": false, "moduleDock": false, "moduleIsland": false, "moduleRemote": false, "remoteAlwaysOn": false,
       "captureFolder": Self.desktop,
     ])
     language = defaults.string(forKey: "language") ?? "es_ES"
@@ -85,6 +87,7 @@ final class AppSettings {
     moduleIsland = defaults.bool(forKey: "moduleIsland")
     moduleRemote = defaults.bool(forKey: "moduleRemote")
     remoteKey = defaults.string(forKey: "remoteKey") ?? ""
+    remoteAlwaysOn = defaults.bool(forKey: "remoteAlwaysOn")
     captureFolder = defaults.string(forKey: "captureFolder") ?? Self.desktop
     dictionary = JSONFileStore.load(PersonalDictionary.self, from: AppPaths.dictionaryURL) ?? PersonalDictionary()
     tones = JSONFileStore.load(ToneRules.self, from: AppPaths.tonesURL) ?? .defaults

@@ -31,7 +31,8 @@ final class RemoteController {
   var isOn: Bool { state == .on || state == .starting }
   var port: UInt16 { Remote.defaultPort }
 
-  /// Lo llama Sintecla al arrancar. Al apagar el módulo, se apaga el servidor.
+  /// Lo llama Sintecla al arrancar. Al apagar el módulo, se apaga el servidor; con «Encender al abrir Sintecla», se
+  /// enciende solo.
   func configure(settings: AppSettings) {
     self.settings = settings
     control.captureFolder = { settings.captureFolderURL }
@@ -41,15 +42,20 @@ final class RemoteController {
     server.status = { Self.battery() }
     server.nowPlaying = { Self.nowPlaying() }
     server.artwork = { Self.artworkJPEG() }
+    if settings.remoteAlwaysOn { start() }
     watchModule()
   }
 
   private func watchModule() {
     guard let settings else { return }
-    withObservationTracking { _ = settings.moduleRemote } onChange: { [weak self] in
+    withObservationTracking {
+      _ = settings.moduleRemote
+      _ = settings.remoteAlwaysOn
+    } onChange: { [weak self] in
       Task { @MainActor in
-        if self?.settings?.moduleRemote == false { self?.stop() }
-        self?.watchModule()
+        guard let self, let settings = self.settings else { return }
+        if !settings.moduleRemote { self.stop() } else if settings.remoteAlwaysOn, !self.isOn { self.start() }
+        self.watchModule()
       }
     }
   }

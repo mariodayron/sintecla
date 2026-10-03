@@ -51,6 +51,14 @@ import Testing
     #expect(Remote.newKey() != key)
   }
 
+  @Test func theManifestOpensTheAppWithTheKey() throws {
+    let data = Remote.manifest(key: "abc")
+    let json = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+    #expect(json["start_url"] as? String == "/?k=abc")
+    #expect(json["display"] as? String == "standalone")
+    #expect(json["short_name"] as? String == "Mando")
+  }
+
   // MARK: WebSocket
 
   @Test func decodesAMaskedTextFrame() throws {

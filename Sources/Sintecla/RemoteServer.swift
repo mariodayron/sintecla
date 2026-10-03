@@ -82,14 +82,15 @@ final class RemoteServer {
     let key = key()
     let authorized = request.isAuthorized(key: key)
     switch (request.method, request.path) {
-    case ("GET", "/") where request.query["k"] == key && !key.isEmpty:
-      // Deja la llave en una cookie y vuelve a la página sin ella en la dirección.
-      connection.respond(status: "303 See Other", headers: [
-        "Location": "/",
-        "Set-Cookie": "\(Remote.cookieName)=\(key); Path=/; Max-Age=31536000; SameSite=Strict; HttpOnly",
-      ])
     case ("GET", "/") where authorized:
-      connection.respond(status: "200 OK", type: "text/html; charset=utf-8", body: Data(RemoteWebPage.html.utf8))
+      // La llave se queda en la dirección: así la guarda «Añadir a pantalla de inicio». También va a una cookie.
+      connection.respond(status: "200 OK", type: "text/html; charset=utf-8", body: Data(RemoteWebPage.html.utf8),
+                         headers: ["Set-Cookie": "\(Remote.cookieName)=\(key); Path=/; Max-Age=31536000; SameSite=Lax"])
+    case ("GET", "/manifest.json") where authorized:
+      connection.respond(status: "200 OK", type: "application/manifest+json", body: Remote.manifest(key: key))
+    case ("GET", "/icon.png"):
+      // Sin llave: el iPhone lo pide al añadir la app a la pantalla de inicio, a veces sin la cookie.
+      connection.respond(status: "200 OK", type: "image/png", body: Self.icon, headers: ["Cache-Control": "max-age=86400"])
     case ("GET", "/ws") where authorized && request.isWebSocketUpgrade:
       connection.upgrade(key: request.headers["sec-websocket-key"] ?? "")
       sockets.insert(ObjectIdentifier(connection))
@@ -113,6 +114,21 @@ final class RemoteServer {
       connection.respond(status: authorized ? "404 Not Found" : "403 Forbidden")
     }
   }
+
+  /// El icono de Sintecla para la pantalla de inicio del móvil (180 × 180, fondo negro).
+  private static let icon: Data = {
+    let side = 180
+    guard let bitmap = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: side, pixelsHigh: side, bitsPerSample: 8,
+                                        samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB,
+                                        bytesPerRow: 0, bitsPerPixel: 0) else { return Data() }
+    NSGraphicsContext.saveGraphicsState()
+    NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: bitmap)
+    NSColor.black.setFill()
+    NSRect(x: 0, y: 0, width: side, height: side).fill()
+    NSApplication.shared.applicationIconImage?.draw(in: NSRect(x: 0, y: 0, width: side, height: side))
+    NSGraphicsContext.restoreGraphicsState()
+    return bitmap.representation(using: .png, properties: [:]) ?? Data()
+  }()
 
   private static let locked = """
     <!DOCTYPE html><html lang="es"><head><meta charset="utf-8">

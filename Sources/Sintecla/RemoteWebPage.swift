@@ -1,4 +1,5 @@
-// Generado a partir de MacRemote (mac_remote.py), traducido y con el punto de conexión. No lleva barras invertidas.
+// Generado a partir de MacRemote (mac_remote.py), traducido, con el punto de conexión y la llave en cada petición.
+// No lleva barras invertidas.
 
 /// La página del móvil del módulo Mando: trackpad, música, volumen, teclado y atajos. Habla con Sintecla por
 /// WebSocket en `/ws` y, mientras conecta, con `POST /action`.
@@ -13,6 +14,8 @@ enum RemoteWebPage {
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mando">
 <meta name="theme-color" content="#000000">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon.png">
 <style>
   :root {
     --bg: #000000;
@@ -520,13 +523,22 @@ enum RemoteWebPage {
 
 <script>
 // ── WebSocket: persistent connection, zero HTTP overhead ──────────────
+// La llave del enlace del QR: se guarda en el móvil y va en cada petición (la app de la pantalla de inicio no
+// comparte las cookies de Safari).
+const KEY = (() => {
+  const fromLink = new URLSearchParams(location.search).get('k');
+  try { if (fromLink) localStorage.setItem('k', fromLink); return fromLink || localStorage.getItem('k') || ''; }
+  catch(e) { return fromLink || ''; }
+})();
+function withKey(path) { return path + (path.includes('?') ? '&' : '?') + 'k=' + encodeURIComponent(KEY); }
+
 let ws = null;
 let wsReady = false;
 let wsReconnectTimer = null;
 
 function connectWS() {
   try {
-    ws = new WebSocket(`ws://${location.host}/ws`);
+    ws = new WebSocket(`ws://${location.host}${withKey('/ws')}`);
   } catch(e) {
     scheduleReconnect();
     return;
@@ -551,7 +563,7 @@ function send(data) {
     try { ws.send(JSON.stringify(data)); return; } catch(e) {}
   }
   // HTTP fallback while WS is connecting
-  try { navigator.sendBeacon('/action', JSON.stringify(data)); } catch(e) {}
+  try { navigator.sendBeacon(withKey('/action'), JSON.stringify(data)); } catch(e) {}
 }
 
 // ── Trackpad ──────────────────────────────────────────────────────────
@@ -695,7 +707,7 @@ document.getElementById('sens-slider').addEventListener('input', e => {
 
 // ── Battery polling ─────────────────────────────────────────────────────
 function updateStatus() {
-  fetch('/status')
+  fetch(withKey('/status'))
     .then(r => r.json())
     .then(data => {
       const batText = document.getElementById('batt-text');
@@ -733,7 +745,7 @@ function toggleNotch() {
 }
 
 function updateNowPlaying() {
-  fetch('/nowplaying')
+  fetch(withKey('/nowplaying'))
     .then(r => r.json())
     .then(data => {
       if (!data.playing) {
@@ -748,7 +760,7 @@ function updateNowPlaying() {
 
       const artEl = document.getElementById('notch-art');
       if (data.artwork) {
-        artEl.innerHTML = `<img src="${data.artwork}" alt="">`;
+        artEl.innerHTML = `<img src="${withKey(data.artwork)}" alt="">`;
       } else {
         artEl.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>`;
       }
