@@ -23,6 +23,8 @@ final class AltTabController {
   private var state: SwitcherState?
   private var showTask: Task<Void, Never>?
   private var thumbnailTask: Task<Void, Never>?
+  /// Al abrirse el selector (la vista del Dock se cierra).
+  var onOpen: (() -> Void)?
 
   init(settings: AppSettings) {
     self.settings = settings
@@ -62,6 +64,7 @@ final class AltTabController {
     catalog.refresh()
     let windows = catalog.windows
     guard !windows.isEmpty else { return }
+    onOpen?()
     state = SwitcherState(count: windows.count, backward: backward)
     panel.layout(count: windows.count)
     panel.model.windows = windows

@@ -42,6 +42,8 @@ final class DictationController {
   private lazy var captures = CaptureController(settings: settings, appleModel: appleModel)
   /// Módulo Alt-Tab.
   private lazy var altTab = AltTabController(settings: settings)
+  /// Módulo Dock.
+  private lazy var dock = DockPreviewController(settings: settings)
 
   init(settings: AppSettings, meetings: MeetingLibrary) {
     self.settings = settings
@@ -58,13 +60,14 @@ final class DictationController {
     eventTap.onEvent = { [weak self] event in
       MainActor.assumeIsolated { self?.handle(event) ?? false }
     }
-    // Después de los atajos de dictado: Finder, Capturas y Alt-Tab.
+    // Después de los atajos de dictado: Finder, Capturas, Alt-Tab y Esc de la vista del Dock.
     eventTap.onKeyDown = { [weak self] keyCode, modifiers in
       MainActor.assumeIsolated {
         guard let self else { return false }
         return self.finderCutter.keyDown(keyCode: keyCode, modifiers: modifiers)
           || self.captures.keyDown(keyCode: keyCode, modifiers: modifiers)
           || self.altTab.keyDown(keyCode: keyCode, modifiers: modifiers)
+          || self.dock.keyDown(keyCode: keyCode, modifiers: modifiers)
       }
     }
     eventTap.onModifiersChanged = { [weak self] modifiers in
@@ -73,10 +76,12 @@ final class DictationController {
     finderCutter.onNotice = { [weak self] text in self?.showToolNotice(text, symbol: FinderCutter.symbol) }
     captures.onNotice = { [weak self] text, symbol in self?.showToolNotice(text, symbol: symbol) }
     captures.onNeedsPermission = { [weak self] in self?.onShowCaptures?() }
+    altTab.onOpen = { [weak self] in self?.dock.dismiss() }
     applySettings()
     guard eventTap.start() else { return false }
     // Solo con el teclado escuchándose: si no, apagar el ⌘Tab de macOS dejaría sin ninguno.
     altTab.start()
+    dock.start()
     try? history.compact()
     if Permissions.typelessRunning {
       show(.message("Typeless está abierto: ciérralo (también usa 🌐)"))
