@@ -34,6 +34,8 @@ final class AppSettings {
   var moduleMeetings: Bool { didSet { defaults.set(moduleMeetings, forKey: "moduleMeetings") } }
   /// Módulo Capturas (spec «Capturas»), apagado por defecto.
   var moduleCaptures: Bool { didSet { defaults.set(moduleCaptures, forKey: "moduleCaptures") } }
+  /// Módulo Alt-Tab (spec «Alt-Tab»), apagado por defecto.
+  var moduleAltTab: Bool { didSet { defaults.set(moduleAltTab, forKey: "moduleAltTab") } }
   /// Dónde guarda ⌘S las capturas (spec «Editor de capturas completo» §4). De fábrica, el Escritorio.
   var captureFolder: String { didSet { defaults.set(captureFolder, forKey: "captureFolder") } }
   var dictionary: PersonalDictionary { didSet { try? JSONFileStore.save(dictionary, to: AppPaths.dictionaryURL) } }
@@ -50,6 +52,7 @@ final class AppSettings {
       "learnCorrections": true,
       "saveMeetingAudio": true, "meetingNoticeShown": false,
       "finderCut": false, "moduleDictation": true, "moduleMeetings": true, "moduleCaptures": false,
+      "moduleAltTab": false,
       "captureFolder": Self.desktop,
     ])
     language = defaults.string(forKey: "language") ?? "es_ES"
@@ -69,6 +72,7 @@ final class AppSettings {
     moduleDictation = defaults.bool(forKey: "moduleDictation")
     moduleMeetings = defaults.bool(forKey: "moduleMeetings")
     moduleCaptures = defaults.bool(forKey: "moduleCaptures")
+    moduleAltTab = defaults.bool(forKey: "moduleAltTab")
     captureFolder = defaults.string(forKey: "captureFolder") ?? Self.desktop
     dictionary = JSONFileStore.load(PersonalDictionary.self, from: AppPaths.dictionaryURL) ?? PersonalDictionary()
     tones = JSONFileStore.load(ToneRules.self, from: AppPaths.tonesURL) ?? .defaults
@@ -82,12 +86,16 @@ final class AppSettings {
 
   /// Qué módulos están encendidos. Finder es el interruptor `finderCut` de la 0.9.0.
   var modules: ModuleSwitches {
-    get { ModuleSwitches(dictation: moduleDictation, meetings: moduleMeetings, finder: finderCut, captures: moduleCaptures) }
+    get {
+      ModuleSwitches(dictation: moduleDictation, meetings: moduleMeetings, finder: finderCut, captures: moduleCaptures,
+                     altTab: moduleAltTab)
+    }
     set {
       if moduleDictation != newValue.dictation { moduleDictation = newValue.dictation }
       if moduleMeetings != newValue.meetings { moduleMeetings = newValue.meetings }
       if finderCut != newValue.finder { finderCut = newValue.finder }
       if moduleCaptures != newValue.captures { moduleCaptures = newValue.captures }
+      if moduleAltTab != newValue.altTab { moduleAltTab = newValue.altTab }
     }
   }
 

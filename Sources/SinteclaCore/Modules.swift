@@ -2,7 +2,7 @@ import Foundation
 
 /// Los módulos de Sintecla (spec «Módulos y batería» §2). Cada uno se enciende o se apaga en la página Módulos.
 public enum Module: String, CaseIterable, Sendable {
-  case dictation, meetings, finder, captures
+  case dictation, meetings, finder, captures, altTab
 
   public var name: String {
     switch self {
@@ -10,6 +10,7 @@ public enum Module: String, CaseIterable, Sendable {
     case .meetings: "Reuniones"
     case .finder: "Finder"
     case .captures: "Capturas"
+    case .altTab: "Alt-Tab"
     }
   }
 
@@ -19,6 +20,7 @@ public enum Module: String, CaseIterable, Sendable {
     case .meetings: "person.2.wave.2"
     case .finder: "folder"
     case .captures: "camera.viewfinder"
+    case .altTab: "rectangle.on.rectangle"
     }
   }
 
@@ -30,6 +32,8 @@ public enum Module: String, CaseIterable, Sendable {
     case .finder: "⌘X corta los archivos seleccionados y ⌘V los mueve a la carpeta abierta, como en Windows."
     case .captures: "⇧⌘3 pantalla, ⇧⌘4 zona, ⇧⌘2 texto y ⇧⌘1 texto con traducir y preguntar. Necesita el permiso de "
       + "Grabación de pantalla."
+    case .altTab: "⌘Tab cambia de ventana, no de app, con una miniatura de cada una, como en Windows. Las miniaturas "
+      + "necesitan el permiso de Grabación de pantalla."
     }
   }
 
@@ -42,6 +46,7 @@ public enum ModulePage: String, CaseIterable, Hashable, Sendable {
   case meetings
   case finderCut
   case captures
+  case altTab
 
   public var module: Module {
     switch self {
@@ -49,6 +54,7 @@ public enum ModulePage: String, CaseIterable, Hashable, Sendable {
     case .meetings: .meetings
     case .finderCut: .finder
     case .captures: .captures
+    case .altTab: .altTab
     }
   }
 
@@ -63,6 +69,7 @@ public enum ModulePage: String, CaseIterable, Hashable, Sendable {
     case .meetings: "Reuniones"
     case .finderCut: "Cortar y pegar"
     case .captures: "Capturas"
+    case .altTab: "Alt-Tab"
     }
   }
 
@@ -77,6 +84,7 @@ public enum ModulePage: String, CaseIterable, Hashable, Sendable {
     case .meetings: "person.2.wave.2"
     case .finderCut: "scissors"
     case .captures: "camera.viewfinder"
+    case .altTab: "rectangle.on.rectangle"
     }
   }
 }
@@ -87,12 +95,14 @@ public struct ModuleSwitches: Equatable, Sendable {
   public var meetings: Bool
   public var finder: Bool
   public var captures: Bool
+  public var altTab: Bool
 
-  public init(dictation: Bool, meetings: Bool, finder: Bool, captures: Bool = false) {
+  public init(dictation: Bool, meetings: Bool, finder: Bool, captures: Bool = false, altTab: Bool = false) {
     self.dictation = dictation
     self.meetings = meetings
     self.finder = finder
     self.captures = captures
+    self.altTab = altTab
   }
 
   public subscript(module: Module) -> Bool {
@@ -102,6 +112,7 @@ public struct ModuleSwitches: Equatable, Sendable {
       case .meetings: meetings
       case .finder: finder
       case .captures: captures
+      case .altTab: altTab
       }
     }
     set {
@@ -110,6 +121,7 @@ public struct ModuleSwitches: Equatable, Sendable {
       case .meetings: meetings = newValue
       case .finder: finder = newValue
       case .captures: captures = newValue
+      case .altTab: altTab = newValue
       }
     }
   }

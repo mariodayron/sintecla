@@ -113,6 +113,7 @@ struct MainView: View {
     case .meetings: MeetingsPage(library: meetings, actions: meetingActions, settings: settings)
     case .finderCut: FinderCutPage()
     case .captures: CapturesPage(settings: settings)
+    case .altTab: AltTabPage()
     }
   }
 }
