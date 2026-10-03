@@ -71,8 +71,8 @@ struct HomeView: View {
       if !ScreenCapture.hasPermission {
         Label(CaptureNotice.noPermission, systemImage: "exclamationmark.triangle").font(.callout)
       }
-    case .altTab:
-      Text(AltTabShortcut.summary).foregroundStyle(.secondary)
+    case .altTab, .dock:
+      Text(module == .altTab ? AltTabShortcut.summary : DockPreview.summary).foregroundStyle(.secondary)
       if !ScreenCapture.hasPermission {
         Label("Sin miniaturas: falta el permiso de Grabación de pantalla", systemImage: "exclamationmark.triangle")
           .font(.callout)

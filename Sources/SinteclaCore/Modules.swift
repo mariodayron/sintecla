@@ -2,7 +2,7 @@ import Foundation
 
 /// Los módulos de Sintecla (spec «Módulos y batería» §2). Cada uno se enciende o se apaga en la página Módulos.
 public enum Module: String, CaseIterable, Sendable {
-  case dictation, meetings, finder, captures, altTab
+  case dictation, meetings, finder, captures, altTab, dock
 
   public var name: String {
     switch self {
@@ -11,6 +11,7 @@ public enum Module: String, CaseIterable, Sendable {
     case .finder: "Finder"
     case .captures: "Capturas"
     case .altTab: "Alt-Tab"
+    case .dock: "Dock"
     }
   }
 
@@ -21,6 +22,7 @@ public enum Module: String, CaseIterable, Sendable {
     case .finder: "folder"
     case .captures: "camera.viewfinder"
     case .altTab: "rectangle.on.rectangle"
+    case .dock: "dock.rectangle"
     }
   }
 
@@ -34,6 +36,8 @@ public enum Module: String, CaseIterable, Sendable {
       + "Grabación de pantalla."
     case .altTab: "⌘Tab cambia de ventana, no de app, con una miniatura de cada una, como en Windows. Las miniaturas "
       + "necesitan el permiso de Grabación de pantalla."
+    case .dock: "Al pasar el ratón por una app del Dock, enseña sus ventanas para saltar a una, cerrarla o minimizarla. "
+      + "Las miniaturas necesitan el permiso de Grabación de pantalla."
     }
   }
 
@@ -47,6 +51,7 @@ public enum ModulePage: String, CaseIterable, Hashable, Sendable {
   case finderCut
   case captures
   case altTab
+  case dock
 
   public var module: Module {
     switch self {
@@ -55,6 +60,7 @@ public enum ModulePage: String, CaseIterable, Hashable, Sendable {
     case .finderCut: .finder
     case .captures: .captures
     case .altTab: .altTab
+    case .dock: .dock
     }
   }
 
@@ -70,6 +76,7 @@ public enum ModulePage: String, CaseIterable, Hashable, Sendable {
     case .finderCut: "Cortar y pegar"
     case .captures: "Capturas"
     case .altTab: "Alt-Tab"
+    case .dock: "Dock"
     }
   }
 
@@ -85,6 +92,7 @@ public enum ModulePage: String, CaseIterable, Hashable, Sendable {
     case .finderCut: "scissors"
     case .captures: "camera.viewfinder"
     case .altTab: "rectangle.on.rectangle"
+    case .dock: "dock.rectangle"
     }
   }
 }
@@ -96,13 +104,16 @@ public struct ModuleSwitches: Equatable, Sendable {
   public var finder: Bool
   public var captures: Bool
   public var altTab: Bool
+  public var dock: Bool
 
-  public init(dictation: Bool, meetings: Bool, finder: Bool, captures: Bool = false, altTab: Bool = false) {
+  public init(dictation: Bool, meetings: Bool, finder: Bool, captures: Bool = false, altTab: Bool = false,
+              dock: Bool = false) {
     self.dictation = dictation
     self.meetings = meetings
     self.finder = finder
     self.captures = captures
     self.altTab = altTab
+    self.dock = dock
   }
 
   public subscript(module: Module) -> Bool {
@@ -113,6 +124,7 @@ public struct ModuleSwitches: Equatable, Sendable {
       case .finder: finder
       case .captures: captures
       case .altTab: altTab
+      case .dock: dock
       }
     }
     set {
@@ -122,6 +134,7 @@ public struct ModuleSwitches: Equatable, Sendable {
       case .finder: finder = newValue
       case .captures: captures = newValue
       case .altTab: altTab = newValue
+      case .dock: dock = newValue
       }
     }
   }

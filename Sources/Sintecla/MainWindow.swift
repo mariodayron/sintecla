@@ -114,6 +114,7 @@ struct MainView: View {
     case .finderCut: FinderCutPage()
     case .captures: CapturesPage(settings: settings)
     case .altTab: AltTabPage()
+    case .dock: DockPage()
     }
   }
 }

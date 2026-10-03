@@ -3,7 +3,7 @@ import Testing
 @testable import SinteclaCore
 
 @Suite struct ModulesTests {
-  let allOn = ModuleSwitches(dictation: true, meetings: true, finder: true, captures: true, altTab: true)
+  let allOn = ModuleSwitches(dictation: true, meetings: true, finder: true, captures: true, altTab: true, dock: true)
 
   @Test func eachPageBelongsToItsModule() {
     #expect(Module.dictation.pages == [.history, .stats, .dictionary, .tones, .ai, .hotkeys])
@@ -11,6 +11,7 @@ import Testing
     #expect(Module.finder.pages == [.finderCut])
     #expect(Module.captures.pages == [.captures])
     #expect(Module.altTab.pages == [.altTab])
+    #expect(Module.dock.pages == [.dock])
     for module in Module.allCases {
       #expect(module.pages.allSatisfy { $0.module == module })
     }
@@ -18,7 +19,8 @@ import Testing
   }
 
   @Test func namesInSpanish() {
-    #expect(Module.allCases.map(\.name) == ["Dictado", "Reuniones", "Finder", "Capturas", "Alt-Tab"])
+    #expect(Module.allCases.map(\.name) == ["Dictado", "Reuniones", "Finder", "Capturas", "Alt-Tab", "Dock"])
+    #expect(ModulePage.dock.title == "Dock")
     #expect(ModulePage.altTab.title == "Alt-Tab")
     #expect(ModulePage.captures.title == "Capturas")
     #expect(ModulePage.hotkeys.title == "Atajos e idioma")
@@ -26,7 +28,7 @@ import Testing
   }
 
   @Test func enabledModulesKeepTheirOrder() {
-    #expect(allOn.enabled == [.dictation, .meetings, .finder, .captures, .altTab])
+    #expect(allOn.enabled == [.dictation, .meetings, .finder, .captures, .altTab, .dock])
     #expect(ModuleSwitches(dictation: false, meetings: true, finder: true).enabled == [.meetings, .finder])
     #expect(ModuleSwitches(dictation: false, meetings: false, finder: false).enabled == [])
   }
@@ -40,11 +42,14 @@ import Testing
     #expect(!switches.captures)
     switches[.altTab] = false
     #expect(!switches.altTab)
+    switches[.dock] = false
+    #expect(!switches.dock)
   }
 
   @Test func capturesIsOffUnlessSaid() {
     #expect(!ModuleSwitches(dictation: true, meetings: true, finder: true).captures)
     #expect(!ModuleSwitches(dictation: true, meetings: true, finder: true, captures: true).altTab)
+    #expect(!ModuleSwitches(dictation: true, meetings: true, finder: true, captures: true, altTab: true).dock)
   }
 
   @Test func pageOfATurnedOffModuleGoesHome() {
