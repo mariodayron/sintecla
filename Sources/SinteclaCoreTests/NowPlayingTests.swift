@@ -9,14 +9,14 @@ import Testing
   // MARK: Las líneas del ayudante
 
   @Test func readsAFullLine() throws {
-    let line = #"{"playing":true,"title":"Mariposas Rojas","artist":"Delaossa","album":"La Madrugá","duration":195,"#
+    let line = #"{"playing":true,"title":"Canción de prueba","artist":"Artista","album":"Álbum","duration":195,"#
       + #""elapsed":17.5,"timestamp":1790000000,"pid":1463,"artworkID":"a1","artwork":"aGVsbG8="}"#
     let update = try #require(NowPlayingUpdate.parse(line))
     guard case .track(let track, let artwork) = update else {
       Issue.record("no es una canción")
       return
     }
-    #expect(track == NowPlaying(title: "Mariposas Rojas", artist: "Delaossa", album: "La Madrugá", duration: 195,
+    #expect(track == NowPlaying(title: "Canción de prueba", artist: "Artista", album: "Álbum", duration: 195,
                                 elapsed: 17.5, timestamp: t0, isPlaying: true, pid: 1463, artworkID: "a1"))
     #expect(artwork == Data("hello".utf8))
   }
