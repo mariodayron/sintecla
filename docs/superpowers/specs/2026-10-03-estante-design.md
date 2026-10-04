@@ -1,6 +1,6 @@
 # Estante y avisos en la isla — Diseño
 
-- **Estado:** diseño aprobado por el usuario el 2026-10-03.
+- **Estado:** diseño aprobado por el usuario el 2026-10-03. Entregado en `v0.16.0` (aceptado por el usuario el 2026-10-04).
 - **Relación:** amplía la isla de `2026-10-03-isla-design.md` (módulo «Isla», `moduleIsland`). Todo lo de aquí solo funciona con ese módulo encendido.
 - **Versión:** 0.16.0 (build 18), rama `estante`, un solo plan.
 
