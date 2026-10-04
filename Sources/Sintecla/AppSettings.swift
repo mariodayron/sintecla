@@ -40,6 +40,9 @@ final class AppSettings {
   var moduleDock: Bool { didSet { defaults.set(moduleDock, forKey: "moduleDock") } }
   /// Módulo Isla (spec «La isla»), apagado por defecto.
   var moduleIsland: Bool { didSet { defaults.set(moduleIsland, forKey: "moduleIsland") } }
+  /// Isla: el estante de archivos y los avisos de carga y AirPods (spec «Estante y avisos» §2), encendidos de fábrica.
+  var islandShelf: Bool { didSet { defaults.set(islandShelf, forKey: "islandShelf") } }
+  var islandDeviceNotices: Bool { didSet { defaults.set(islandDeviceNotices, forKey: "islandDeviceNotices") } }
   /// Módulo Mando (el móvil como trackpad), apagado por defecto.
   var moduleRemote: Bool { didSet { defaults.set(moduleRemote, forKey: "moduleRemote") } }
   /// La llave del enlace del Mando: sin ella, el servidor no obedece. Se crea la primera vez.
@@ -63,6 +66,7 @@ final class AppSettings {
       "saveMeetingAudio": true, "meetingNoticeShown": false,
       "finderCut": false, "moduleDictation": true, "moduleMeetings": true, "moduleCaptures": false,
       "moduleAltTab": false, "moduleDock": false, "moduleIsland": false, "moduleRemote": false, "remoteAlwaysOn": false,
+      "islandShelf": true, "islandDeviceNotices": true,
       "captureFolder": Self.desktop,
     ])
     language = defaults.string(forKey: "language") ?? "es_ES"
@@ -85,6 +89,8 @@ final class AppSettings {
     moduleAltTab = defaults.bool(forKey: "moduleAltTab")
     moduleDock = defaults.bool(forKey: "moduleDock")
     moduleIsland = defaults.bool(forKey: "moduleIsland")
+    islandShelf = defaults.bool(forKey: "islandShelf")
+    islandDeviceNotices = defaults.bool(forKey: "islandDeviceNotices")
     moduleRemote = defaults.bool(forKey: "moduleRemote")
     remoteKey = defaults.string(forKey: "remoteKey") ?? ""
     remoteAlwaysOn = defaults.bool(forKey: "remoteAlwaysOn")

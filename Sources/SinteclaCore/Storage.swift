@@ -14,6 +14,8 @@ public enum AppPaths {
   public static var statsURL: URL { supportDirectory.appendingPathComponent("stats.json") }
   public static var dictionaryURL: URL { supportDirectory.appendingPathComponent("dictionary.json") }
   public static var tonesURL: URL { supportDirectory.appendingPathComponent("tones.json") }
+  /// El estante de la isla (spec «Estante y avisos» §3.4).
+  public static var shelfURL: URL { supportDirectory.appendingPathComponent("estante.json") }
   public static var draftsDirectory: URL { supportDirectory.appendingPathComponent("drafts", isDirectory: true) }
   public static var meetingsDirectory: URL { supportDirectory.appendingPathComponent("meetings", isDirectory: true) }
   /// Actas en PDF y Markdown: ~/Documents/Sintecla/Reuniones/
