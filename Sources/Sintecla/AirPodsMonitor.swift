@@ -3,7 +3,9 @@ import Foundation
 import SinteclaCore
 
 /// Los AirPods sin permisos nuevos (spec «Estante y avisos» §4.3): al conectarse aparecen como dispositivo de audio
-/// Bluetooth, y la batería sale de `system_profiler` (la vía Bluetooth directa pide el permiso de Bluetooth).
+/// Bluetooth, y la batería sale de `system_profiler` (la vía Bluetooth directa pide el permiso de Bluetooth). Si están
+/// conectados lo dice Core Audio, no `system_profiler`: este los sigue dando por conectados un rato después de
+/// guardarlos en el estuche, y al sacarlos de nuevo no parecerían recién conectados.
 @MainActor
 final class AirPodsMonitor {
   /// Unos AirPods recién conectados (con la batería que haya tras los reintentos).
@@ -19,23 +21,20 @@ final class AirPodsMonitor {
   static let pollInterval: Duration = .seconds(60)
 
   private var listener: AudioObjectPropertyListenerBlock?
-  /// Las direcciones de los AirPods conectados.
+  /// Las direcciones Bluetooth de los dispositivos de audio conectados.
   private var connected: Set<String> = []
-  private var bluetoothAudio: Set<String> = []
   private var pollTask: Task<Void, Never>?
   private var running = false
 
   func start() {
     guard !running else { return }
     running = true
-    bluetoothAudio = Self.bluetoothAudioDevices()
+    connected = Self.bluetoothAudioAddresses()
+    let present = connected
     Task {
-      for device in await Self.read() {
-        connected.insert(device.address)
-        onKnown?(device)
-      }
-      poll()
+      for device in await Self.read() where present.contains(device.address) { onKnown?(device) }
     }
+    poll()
     var address = Self.devicesAddress
     let block: AudioObjectPropertyListenerBlock = { [weak self] _, _ in
       Task { @MainActor in self?.devicesChanged() }
@@ -58,34 +57,27 @@ final class AirPodsMonitor {
   }
 
   private func devicesChanged() {
-    let now = Self.bluetoothAudioDevices()
-    let appeared = !now.subtracting(bluetoothAudio).isEmpty
-    let left = !bluetoothAudio.subtracting(now).isEmpty
-    bluetoothAudio = now
-    if left { Task { await checkDisconnected() } }
-    if appeared { Task { await findNew() } }
+    let now = Self.bluetoothAudioAddresses()
+    let appeared = now.subtracting(connected)
+    let left = connected.subtracting(now)
+    connected = now
+    for address in left { onDisconnect?(address) }
+    for address in appeared { Task { await announce(address) } }
   }
 
-  private func findNew() async {
+  /// Unos AirPods recién conectados, con su batería en cuanto `system_profiler` la dé. Otros auriculares no salen.
+  private func announce(_ address: String) async {
+    var waited = 0.0
     for (index, delay) in Self.retries.enumerated() {
-      try? await Task.sleep(for: .seconds(delay - (index == 0 ? 0 : Self.retries[index - 1])))
-      guard running else { return }
-      let new = await Self.read().filter { !connected.contains($0.address) }
+      try? await Task.sleep(for: .seconds(delay - waited))
+      waited = delay
+      guard running, connected.contains(address) else { return }
+      guard let device = await Self.read().first(where: { $0.address == address }) else { continue }
       // Sin batería todavía: se espera al siguiente intento, salvo en el último.
-      let ready = new.filter { !$0.battery.isEmpty || index == Self.retries.count - 1 }
-      for device in ready {
-        connected.insert(device.address)
+      if !device.battery.isEmpty || index == Self.retries.count - 1 {
         onConnect?(device)
+        return
       }
-      if !new.isEmpty, ready.count == new.count { return }
-    }
-  }
-
-  private func checkDisconnected() async {
-    let still = Set(await Self.read().map(\.address))
-    for address in connected.subtracting(still) {
-      connected.remove(address)
-      onDisconnect?(address)
     }
   }
 
@@ -110,8 +102,8 @@ final class AirPodsMonitor {
                                mElement: kAudioObjectPropertyElementMain)
   }
 
-  /// Los identificadores de los dispositivos de audio Bluetooth conectados.
-  private static func bluetoothAudioDevices() -> Set<String> {
+  /// Las direcciones Bluetooth de los dispositivos de audio conectados (de su identificador de Core Audio).
+  private static func bluetoothAudioAddresses() -> Set<String> {
     var address = devicesAddress
     var size: UInt32 = 0
     let system = AudioObjectID(kAudioObjectSystemObject)
@@ -128,7 +120,15 @@ final class AirPodsMonitor {
       guard AudioObjectGetPropertyData(id, &transportAddress, 0, nil, &transportSize, &transport) == noErr,
             transport == kAudioDeviceTransportTypeBluetooth || transport == kAudioDeviceTransportTypeBluetoothLE
       else { continue }
-      result.insert(String(id))
+      var uid: Unmanaged<CFString>?
+      var uidSize = UInt32(MemoryLayout<Unmanaged<CFString>?>.size)
+      var uidAddress = AudioObjectPropertyAddress(mSelector: kAudioDevicePropertyDeviceUID,
+                                                  mScope: kAudioObjectPropertyScopeGlobal,
+                                                  mElement: kAudioObjectPropertyElementMain)
+      guard AudioObjectGetPropertyData(id, &uidAddress, 0, nil, &uidSize, &uid) == noErr,
+            let text = uid?.takeRetainedValue() as String?,
+            let bluetooth = AirPodsDevice.bluetoothAddress(audioUID: text) else { continue }
+      result.insert(bluetooth)
     }
     return result
   }

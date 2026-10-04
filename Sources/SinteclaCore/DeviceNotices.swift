@@ -52,6 +52,15 @@ public struct AirPodsDevice: Equatable, Sendable {
     return devices.sorted { $0.name < $1.name }
   }
 
+  /// La dirección Bluetooth de un dispositivo de audio, por su identificador de Core Audio
+  /// («00-11-22-AA-BB-CC:output» → «00:11:22:AA:BB:CC»), como la da `system_profiler`; nil si no es Bluetooth.
+  public static func bluetoothAddress(audioUID: String) -> String? {
+    let prefix = audioUID.split(separator: ":").first.map(String.init) ?? ""
+    let parts = prefix.split(separator: "-")
+    guard parts.count == 6, parts.allSatisfy({ $0.count == 2 && $0.allSatisfy(\.isHexDigit) }) else { return nil }
+    return parts.joined(separator: ":").uppercased()
+  }
+
   /// «64 %» (con espacio duro o sin él) → 64.
   private static func level(_ value: Any?) -> Int? {
     guard let text = value as? String else { return nil }

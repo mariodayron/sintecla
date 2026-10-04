@@ -127,6 +127,13 @@ import Testing
     #expect(AirPodsDevice.parse(systemProfiler: data).first?.battery == AirPodsBattery(left: 40))
   }
 
+  @Test func theAudioDeviceGivesTheBluetoothAddress() {
+    #expect(AirPodsDevice.bluetoothAddress(audioUID: "00-11-22-aa-bb-cc:output") == "00:11:22:AA:BB:CC")
+    #expect(AirPodsDevice.bluetoothAddress(audioUID: "00-11-22-AA-BB-CC:input") == "00:11:22:AA:BB:CC")
+    #expect(AirPodsDevice.bluetoothAddress(audioUID: "BuiltInSpeakerDevice") == nil)
+    #expect(AirPodsDevice.bluetoothAddress(audioUID: "AppleUSBAudioEngine:Micro:1") == nil)
+  }
+
   private func pods(_ left: Int?, _ right: Int?, case box: Int? = nil) -> AirPodsDevice {
     AirPodsDevice(name: "AirPods de prueba", address: "00:11", battery: AirPodsBattery(left: left, right: right, case: box))
   }
