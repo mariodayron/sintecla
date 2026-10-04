@@ -2,7 +2,7 @@
 
 - **Estado:** diseño aprobado por el usuario el 2026-10-03.
 - **Relación:** amplía la isla de `2026-10-03-isla-design.md` (módulo «Isla», `moduleIsland`). Todo lo de aquí solo funciona con ese módulo encendido.
-- **Versión:** 0.15.0 (build 16), rama `estante`, un solo plan.
+- **Versión:** 0.16.0 (build 18), rama `estante`, un solo plan.
 
 ## 1. Objetivo
 
@@ -124,7 +124,7 @@ Sin muesca no hay estante: no se pueden soltar archivos y no se ve la fila. Los 
 | `AirPodsMonitor` | App | Escucha los dispositivos de audio y lee la batería con `system_profiler` |
 | `IslandController`, `IslandView`, `IslandPanel` | App | Unen todo: formas, bandeja, fila, avisos y su cola |
 | `IslandPage` | App | Los dos interruptores y la ayuda del estante |
-| `AppInfo`, `Info.plist`, `SmokeTests`, README, spec principal | — | 0.15.0 (build 16) |
+| `AppInfo`, `Info.plist`, `SmokeTests`, README, spec principal | — | 0.16.0 (build 18) |
 
 ## 6. Pruebas y riesgos
 
@@ -193,4 +193,4 @@ La batería baja no se fuerza a mano (habría que descargar el Mac): la cubren l
 
 ## 7. Entrega
 
-Un plan en la rama `estante`, versión **0.15.0**, con la aceptación al final. Sin subir a GitHub hasta que lo pida el usuario.
+Un plan en la rama `estante`, versión **0.16.0**, con la aceptación al final. Sin subir a GitHub hasta que lo pida el usuario.
