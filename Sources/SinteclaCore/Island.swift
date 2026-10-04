@@ -10,6 +10,8 @@ public enum IslandActivity: Equatable, Sendable {
   case done
   /// Avisos y mensajes de la pastilla.
   case notice
+  /// Avisos de carga y AirPods (spec «Estante y avisos» §4).
+  case device
 
   /// Las que bajan por debajo de la muesca, con el texto debajo. «Hecho» cabe en los lados.
   public var isTall: Bool { self != .done }
@@ -23,8 +25,12 @@ public enum IslandForm: Equatable, Sendable {
   case notch
   /// Con música: carátula a un lado y onda al otro.
   case compact
-  /// Con música y el ratón encima.
-  case expanded
+  /// Sin música y con archivos en el estante: la bandeja y cuántos hay (spec «Estante y avisos» §3.2).
+  case shelf
+  /// Con el ratón encima: la música arriba (si la hay) y la fila del estante debajo (si hay archivos).
+  case expanded(music: Bool, shelf: Bool)
+  /// Arrastrando archivos cerca de la muesca: la bandeja donde soltarlos (spec «Estante y avisos» §3.1).
+  case tray
   /// Sintecla; con `bubble`, la música va al lado en una burbuja.
   case activity(IslandActivity, bubble: Bool)
 }
@@ -41,17 +47,37 @@ public enum IslandLayout {
   /// La desplegada: ancho mínimo y lo que baja por debajo de la muesca.
   public static let expandedWidth: CGFloat = 420
   public static let expandedDrop: CGFloat = 148
+  /// La fila del estante en la desplegada, y lo que baja la desplegada solo con estante antes de la fila.
+  public static let shelfRow: CGFloat = 78
+  public static let shelfOnlyGap: CGFloat = 6
+  /// Lo que baja la bandeja por debajo de la muesca.
+  public static let trayDrop: CGFloat = 96
+  /// La zona de la muesca donde un arrastre de archivos abre la bandeja: tanto por cada lado y por debajo.
+  public static let dropZoneSide: CGFloat = 120
+  public static let dropZoneDrop: CGFloat = 110
   /// Hueco entre la isla y la burbuja de la música.
   public static let bubbleGap: CGFloat = 8
 
-  /// `hasNotch` a false: tapa cerrada, isla virtual arriba en el centro, solo con lo de Sintecla; sin nada, no se ve.
+  /// `hasNotch` a false: tapa cerrada, isla virtual arriba en el centro, solo con lo de Sintecla y los avisos; sin
+  /// nada, no se ve. `shelf`: cuántos archivos hay en el estante; `dragging`: hay archivos arrastrándose en la zona de
+  /// la muesca (la bandeja manda sobre todo, también a pantalla completa).
   public static func form(activity: IslandActivity?, music: Bool, hovering: Bool, fullScreen: Bool,
-                          hasNotch: Bool = true) -> IslandForm {
+                          hasNotch: Bool = true, shelf: Int = 0, dragging: Bool = false) -> IslandForm {
     guard hasNotch else { return activity.map { .activity($0, bubble: false) } ?? .hidden }
+    if dragging { return .tray }
     if let activity { return .activity(activity, bubble: music) }
     if fullScreen { return .hidden }
-    guard music else { return .notch }
-    return hovering ? .expanded : .compact
+    let hasShelf = shelf > 0
+    guard music || hasShelf else { return .notch }
+    if hovering { return .expanded(music: music, shelf: hasShelf) }
+    return music ? .compact : .shelf
+  }
+
+  /// La zona de la muesca donde un arrastre de archivos abre la bandeja, en coordenadas de pantalla (spec «Estante y
+  /// avisos» §3.1). Llega hasta arriba: el borde de la pantalla también cuenta.
+  public static func dropZone(around notch: CGRect) -> CGRect {
+    CGRect(x: notch.minX - dropZoneSide, y: notch.minY - dropZoneDrop, width: notch.width + 2 * dropZoneSide,
+           height: notch.height + dropZoneDrop)
   }
 
   /// `hasNotch` a false: isla virtual; las actividades altas llevan todo en una fila y bajan menos.
@@ -59,9 +85,20 @@ public enum IslandLayout {
     switch form {
     case .hidden: .zero
     case .notch: notch
-    case .compact, .activity(.done, _): CGSize(width: notch.width + 2 * wing, height: notch.height)
-    case .expanded: CGSize(width: max(notch.width + 2 * wing, expandedWidth), height: notch.height + expandedDrop)
+    case .compact, .shelf, .activity(.done, _): CGSize(width: notch.width + 2 * wing, height: notch.height)
+    case .expanded(let music, let shelf):
+      CGSize(width: max(notch.width + 2 * wing, expandedWidth),
+             height: notch.height + (music ? expandedDrop : shelfOnlyGap) + (shelf ? shelfRow : 0))
+    case .tray: CGSize(width: max(notch.width + 2 * wing, expandedWidth), height: notch.height + trayDrop)
     case .activity: CGSize(width: notch.width + 2 * tallWing, height: notch.height + (hasNotch ? tallDrop : virtualDrop))
+    }
+  }
+
+  /// Las que se despliegan con el ratón encima.
+  public static func isHoverable(_ form: IslandForm) -> Bool {
+    switch form {
+    case .compact, .shelf, .expanded: true
+    default: false
     }
   }
 

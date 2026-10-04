@@ -6,10 +6,12 @@ import SwiftUI
 /// menús de alrededor sigue funcionando.
 @MainActor
 final class IslandPanel {
-  /// Cabe la isla más grande (desplegada) con su sombra, y la burbuja al lado.
-  static let size = CGSize(width: 760, height: 240)
+  /// Cabe la isla más grande (desplegada con música y estante) con su sombra, y la burbuja al lado.
+  static let size = CGSize(width: 760, height: 300)
 
   private let panel: NSPanel
+  /// Recibe los archivos cuando la isla es la bandeja (spec «Estante y avisos» §3.1).
+  let dropView = FileDropView(frame: NSRect(origin: .zero, size: IslandPanel.size))
 
   init(view: IslandView) {
     panel = NSPanel(contentRect: NSRect(origin: .zero, size: Self.size), styleMask: [.nonactivatingPanel, .borderless],
@@ -22,7 +24,12 @@ final class IslandPanel {
     panel.hidesOnDeactivate = false
     panel.ignoresMouseEvents = true
     panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
-    panel.contentView = FirstMouseHostingView(rootView: view)
+    let hosting = FirstMouseHostingView(rootView: view)
+    hosting.frame = dropView.bounds
+    hosting.autoresizingMask = [.width, .height]
+    dropView.addSubview(hosting)
+    dropView.accepting = false
+    panel.contentView = dropView
   }
 
   var acceptsMouse: Bool {

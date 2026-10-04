@@ -13,6 +13,8 @@ final class IslandModel {
   var hasNotch = true
   /// Mientras se arrastra la barra de progreso: la fracción que se enseña (de 0 a 1).
   var scrub: Double?
+  /// El aviso de carga o AirPods que se enseña (spec «Estante y avisos» §4).
+  var device: DeviceNotice?
 }
 
 /// La isla (spec «La isla» §3): una sola forma negra que cambia de tamaño con un muelle; dentro, la música o lo de
@@ -21,7 +23,11 @@ struct IslandView: View {
   let model: IslandModel
   let overlay: OverlayModel
   let music: NowPlayingClient
+  let shelf: ShelfStore
+  let drag: ShelfDragSource
   var onOpenApp: () -> Void
+  /// Al empezar a sacar un archivo del estante.
+  var onShelfDrag: () -> Void
   var onCommand: (NowPlayingClient.Command) -> Void
   var onSeek: (Double) -> Void
 
@@ -48,8 +54,17 @@ struct IslandView: View {
   }
 
   private var isNotice: Bool {
-    if case .activity(.notice, _) = model.form { return true }
-    return false
+    switch model.form {
+    case .activity(.notice, _), .activity(.device, _): true
+    default: false
+    }
+  }
+
+  private var isOpen: Bool {
+    switch model.form {
+    case .expanded, .tray: true
+    default: false
+    }
   }
 
   // MARK: La forma
@@ -65,15 +80,16 @@ struct IslandView: View {
         .clipped()
     }
     .frame(width: size.width + 2 * Self.flare, height: size.height)
-    .shadow(color: .black.opacity(model.form == .expanded ? 0.35 : 0), radius: 18, y: 8)
+    .shadow(color: .black.opacity(isOpen ? 0.35 : 0), radius: 18, y: 8)
     .opacity(model.form == .hidden ? 0 : 1)
   }
 
   private var bottomRadius: CGFloat {
     switch model.form {
     case .hidden, .notch: 10
-    case .compact, .activity(.done, _): 13
+    case .compact, .shelf, .activity(.done, _): 13
     case .activity: 22
+    case .tray: 26
     case .expanded: 32
     }
   }
@@ -86,8 +102,17 @@ struct IslandView: View {
       Color.clear
     case .compact:
       compact.transition(.opacity)
-    case .expanded:
-      expanded.transition(.opacity.combined(with: .scale(scale: 0.92, anchor: .top)))
+    case .shelf:
+      shelfCompact.transition(.opacity)
+    case .expanded(let showsMusic, let showsShelf):
+      expanded(music: showsMusic, shelf: showsShelf)
+        .transition(.opacity.combined(with: .scale(scale: 0.92, anchor: .top)))
+    case .tray:
+      tray.transition(.opacity.combined(with: .scale(scale: 0.92, anchor: .top)))
+    case .activity(.device, _):
+      deviceView
+        .id(model.device.map { "\($0)" } ?? "")
+        .transition(.opacity.combined(with: .scale(scale: 0.92, anchor: .top)))
     case .activity(let activity, _):
       activityView(activity)
         .id(activity)
@@ -104,10 +129,42 @@ struct IslandView: View {
     .frame(height: model.notch.height)
   }
 
-  @ViewBuilder private var expanded: some View {
+  /// Sin música y con archivos: la bandeja y cuántos hay.
+  private var shelfCompact: some View {
+    HStack(spacing: 0) {
+      Image(systemName: "tray.full.fill").font(.system(size: 13, weight: .semibold)).padding(.leading, 12)
+      Spacer()
+      Text("\(shelf.items.count)")
+        .font(.system(size: 13, weight: .semibold, design: .rounded).monospacedDigit())
+        .contentTransition(.numericText())
+        .padding(.trailing, 14)
+    }
+    .frame(height: model.notch.height)
+  }
+
+  /// Arriba la música (si la hay) y debajo la fila del estante (si hay archivos).
+  private func expanded(music showsMusic: Bool, shelf showsShelf: Bool) -> some View {
+    VStack(spacing: 0) {
+      Color.clear.frame(height: model.notch.height)
+      if showsMusic {
+        musicControls.frame(height: IslandLayout.expandedDrop, alignment: .top)
+      } else {
+        Color.clear.frame(height: IslandLayout.shelfOnlyGap)
+      }
+      if showsShelf {
+        VStack(spacing: 0) {
+          if showsMusic { Rectangle().fill(.white.opacity(0.15)).frame(height: 1).padding(.bottom, 6) }
+          ShelfRow(store: shelf, drag: drag, onDragStart: onShelfDrag)
+        }
+        .frame(height: IslandLayout.shelfRow, alignment: .top)
+      }
+    }
+    .padding(.horizontal, 22)
+  }
+
+  @ViewBuilder private var musicControls: some View {
     if let track = music.track {
       VStack(spacing: 0) {
-        Color.clear.frame(height: model.notch.height)
         HStack(spacing: 12) {
           Button(action: onOpenApp) { Artwork(music: music, side: 56) }
             .buttonStyle(.plain)
@@ -131,7 +188,71 @@ struct IslandView: View {
         }
         .padding(.top, 4)
       }
-      .padding(.horizontal, 22)
+    }
+  }
+
+  /// Arrastrando archivos cerca de la muesca: dónde soltarlos.
+  private var tray: some View {
+    VStack(spacing: 0) {
+      Color.clear.frame(height: model.notch.height)
+      RoundedRectangle(cornerRadius: 14)
+        .strokeBorder(.white.opacity(0.45), style: StrokeStyle(lineWidth: 1.5, dash: [5, 4]))
+        .overlay {
+          Label("Suelta aquí para guardarlo en el estante", systemImage: "tray.and.arrow.down.fill")
+            .font(.system(size: 13, weight: .medium))
+        }
+        .frame(height: IslandLayout.trayDrop - 18)
+        .padding(.horizontal, 16)
+        .padding(.top, 4)
+    }
+  }
+
+  // MARK: Avisos de carga y AirPods
+
+  @ViewBuilder private var deviceView: some View {
+    if let notice = model.device {
+      if !model.hasNotch {
+        HStack(spacing: 10) {
+          deviceIcon(notice)
+          Text(notice.text).font(.system(size: 13, weight: .medium, design: .rounded)).lineLimit(1)
+            .foregroundStyle(Self.color(notice.tint == .red ? .red : .plain))
+          if let pods = notice.airPods { PodRings(battery: pods) }
+        }
+        .padding(.horizontal, 18)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+      } else {
+        VStack(spacing: 0) {
+          HStack(spacing: 0) {
+            deviceIcon(notice).frame(width: IslandLayout.tallWing)
+            Spacer()
+            Group {
+              if let pods = notice.airPods { PodRings(battery: pods) }
+            }
+            .frame(width: IslandLayout.tallWing)
+          }
+          .frame(height: model.notch.height)
+          Text(notice.text)
+            .font(.system(size: 13, weight: .medium, design: .rounded))
+            .foregroundStyle(Self.color(notice.tint == .red ? .red : .plain))
+            .lineLimit(1)
+            .padding(.horizontal, 18)
+            .frame(height: IslandLayout.tallDrop - 6)
+        }
+      }
+    }
+  }
+
+  private func deviceIcon(_ notice: DeviceNotice) -> some View {
+    Image(systemName: notice.symbol)
+      .font(.system(size: 15, weight: .semibold))
+      .foregroundStyle(Self.color(notice.tint))
+  }
+
+  static func color(_ tint: DeviceNotice.Tint) -> Color {
+    switch tint {
+    case .plain: .white
+    case .green: Color(red: 0.2, green: 0.84, blue: 0.35)
+    case .red: Color(red: 1, green: 0.27, blue: 0.23)
     }
   }
 
@@ -228,6 +349,29 @@ struct IslandView: View {
             .padding(3).background(.black, in: .circle)
         }
       }
+  }
+}
+
+/// La batería de los AirPods: izquierdo, derecho y estuche, cada uno en un anillo con su %; el que no da dato no sale.
+private struct PodRings: View {
+  let battery: AirPodsBattery
+
+  var body: some View {
+    HStack(spacing: 4) {
+      ForEach(Array([battery.left, battery.right, battery.case].enumerated()), id: \.offset) { _, level in
+        if let level {
+          ZStack {
+            Circle().stroke(.white.opacity(0.2), lineWidth: 2)
+            Circle().trim(from: 0, to: CGFloat(level) / 100)
+              .stroke(IslandView.color(level <= AirPodsNotices.lowLevel ? .red : .green),
+                      style: StrokeStyle(lineWidth: 2, lineCap: .round))
+              .rotationEffect(.degrees(-90))
+            Text("\(level)").font(.system(size: 7.5, weight: .bold, design: .rounded).monospacedDigit())
+          }
+          .frame(width: 21, height: 21)
+        }
+      }
+    }
   }
 }
 
